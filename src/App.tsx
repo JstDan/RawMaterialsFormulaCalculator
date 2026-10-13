@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from './data/AuthContext';
 import { DataProvider, useData } from './data/DataContext';
 import { CalculatorPage } from './pages/CalculatorPage';
 import { LoginPage } from './pages/LoginPage';
+import { SavedOffersPage } from './pages/SavedOffersPage';
 import { OfferFormProvider, useOfferForm } from './state/OfferFormContext';
 import { t } from './i18n';
 
@@ -21,7 +22,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<CalculatorPage />} />
-      <Route path="/offers" element={<Typography variant="h1">{t.offers.title}</Typography>} />
+      <Route path="/offers" element={<SavedOffersPage />} />
       <Route path="/materials" element={<Typography variant="h1">{t.materials.title}</Typography>} />
       <Route path="*" element={<Typography>{t.common.notFound}</Typography>} />
     </Routes>
