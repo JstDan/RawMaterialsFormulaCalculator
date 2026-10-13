@@ -71,6 +71,19 @@ export function CalculatorPage() {
     }
   };
 
+  const downloadPdf = async () => {
+    if (!form || !result || !valid) return revealErrors();
+    setBusy(true);
+    try {
+      const { downloadOfferPdf } = await import('../lib/pdf');
+      await downloadOfferPdf(form, result, settings);
+    } catch (e) {
+      setToast({ severity: 'error', message: `${t.results.pdfFailed}: ${(e as Error).message}` });
+    } finally {
+      setBusy(false);
+    }
+  };
+
   if (!form || !result) {
     return (
       <Box sx={{ display: 'grid', placeItems: 'center', py: 8 }}>
@@ -96,6 +109,7 @@ export function CalculatorPage() {
         valid={valid}
         busy={busy}
         onSave={save}
+        onDownloadPdf={downloadPdf}
         onInvalidAttempt={revealErrors}
       />
       <Snackbar
