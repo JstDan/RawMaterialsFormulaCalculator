@@ -1,0 +1,742 @@
+[
+  {
+    "name": "Acacia Fiber/Gum Arabica",
+    "price_eur_per_kg": 14.7,
+    "regulatory_note": null
+  },
+  {
+    "name": "Acai Berry Extract",
+    "price_eur_per_kg": 16,
+    "regulatory_note": null
+  },
+  {
+    "name": "Acerola Cherry Extract",
+    "price_eur_per_kg": 19,
+    "regulatory_note": null
+  },
+  {
+    "name": "Apple Cider Vinegar",
+    "price_eur_per_kg": 32,
+    "regulatory_note": null
+  },
+  {
+    "name": "Artichoke Extract",
+    "price_eur_per_kg": 20,
+    "regulatory_note": null
+  },
+  {
+    "name": "Ashwagandha Extract (5% withanolides)",
+    "price_eur_per_kg": 32,
+    "regulatory_note": null
+  },
+  {
+    "name": "ATP - Adenosine Triphosphate",
+    "price_eur_per_kg": 88,
+    "regulatory_note": null
+  },
+  {
+    "name": "Bacopa Monnieri Extract 20%",
+    "price_eur_per_kg": 30.86,
+    "regulatory_note": null
+  },
+  {
+    "name": "Bamboo Extract",
+    "price_eur_per_kg": 23.5,
+    "regulatory_note": null
+  },
+  {
+    "name": "BCAA - instant - Leucine:Isoleucine:Valine 2:1:1",
+    "price_eur_per_kg": 17.45,
+    "regulatory_note": null
+  },
+  {
+    "name": "Beetroot Extract",
+    "price_eur_per_kg": 18,
+    "regulatory_note": null
+  },
+  {
+    "name": "Berberine HCI",
+    "price_eur_per_kg": 76,
+    "regulatory_note": "Regulatory status under review in the EU – verify before use."
+  },
+  {
+    "name": "Beta - Alanine",
+    "price_eur_per_kg": 4.6,
+    "regulatory_note": null
+  },
+  {
+    "name": "Betaine Anhydrous",
+    "price_eur_per_kg": 30,
+    "regulatory_note": null
+  },
+  {
+    "name": "Biotin 2%",
+    "price_eur_per_kg": 17,
+    "regulatory_note": null
+  },
+  {
+    "name": "Birch Leaf Extract",
+    "price_eur_per_kg": 18,
+    "regulatory_note": null
+  },
+  {
+    "name": "Black Carrot Extract",
+    "price_eur_per_kg": 60,
+    "regulatory_note": null
+  },
+  {
+    "name": "Black Maca Extract",
+    "price_eur_per_kg": 21,
+    "regulatory_note": null
+  },
+  {
+    "name": "Black Pepper Extract",
+    "price_eur_per_kg": 230,
+    "regulatory_note": null
+  },
+  {
+    "name": "BLACKCURRANT FLAVOUR 905.142",
+    "price_eur_per_kg": 39,
+    "regulatory_note": null
+  },
+  {
+    "name": "Blessed Thistle extract",
+    "price_eur_per_kg": 20,
+    "regulatory_note": null
+  },
+  {
+    "name": "Boron Glycinate",
+    "price_eur_per_kg": 42,
+    "regulatory_note": null
+  },
+  {
+    "name": "Boswellia Extract 65%",
+    "price_eur_per_kg": 18.5,
+    "regulatory_note": null
+  },
+  {
+    "name": "Caffeine Anhydrous",
+    "price_eur_per_kg": 20,
+    "regulatory_note": null
+  },
+  {
+    "name": "Ceylon Cinnamon Extract",
+    "price_eur_per_kg": 27,
+    "regulatory_note": null
+  },
+  {
+    "name": "Chaga Mushroom Extract 10:1",
+    "price_eur_per_kg": 22,
+    "regulatory_note": null
+  },
+  {
+    "name": "Chamomile Extract (2% Apigenin)",
+    "price_eur_per_kg": 18.27,
+    "regulatory_note": null
+  },
+  {
+    "name": "Chondroitin Sulfate",
+    "price_eur_per_kg": 36.5,
+    "regulatory_note": null
+  },
+  {
+    "name": "Chromium Picolinate",
+    "price_eur_per_kg": 38,
+    "regulatory_note": null
+  },
+  {
+    "name": "Citicoline",
+    "price_eur_per_kg": 122,
+    "regulatory_note": "Authorised Novel Food – conditions of use and max levels apply."
+  },
+  {
+    "name": "Citrus Bergamot Extract",
+    "price_eur_per_kg": 22,
+    "regulatory_note": null
+  },
+  {
+    "name": "Citrus Flavonoids 50%",
+    "price_eur_per_kg": 30,
+    "regulatory_note": null
+  },
+  {
+    "name": "COCONUT FLAVOUR PFP908158",
+    "price_eur_per_kg": 87,
+    "regulatory_note": null
+  },
+  {
+    "name": "Coconut Water powder",
+    "price_eur_per_kg": 19,
+    "regulatory_note": null
+  },
+  {
+    "name": "Coenzyme Q10",
+    "price_eur_per_kg": 195,
+    "regulatory_note": null
+  },
+  {
+    "name": "Collinstant® Active - Hydrolyzed Bovine Collagen Peptides",
+    "price_eur_per_kg": 11,
+    "regulatory_note": null
+  },
+  {
+    "name": "Cordyceps Extract 30%",
+    "price_eur_per_kg": 35,
+    "regulatory_note": null
+  },
+  {
+    "name": "Corn Silk Extract",
+    "price_eur_per_kg": 16.7,
+    "regulatory_note": null
+  },
+  {
+    "name": "Creatine HCL",
+    "price_eur_per_kg": 11.5,
+    "regulatory_note": null
+  },
+  {
+    "name": "Creatine Monohydrate 200 Mesh",
+    "price_eur_per_kg": 4.3,
+    "regulatory_note": null
+  },
+  {
+    "name": "Curcumin C3 Reduct® Turmeric Extract (95% curcuminoids)",
+    "price_eur_per_kg": 340,
+    "regulatory_note": null
+  },
+  {
+    "name": "D-Chiro-Inositol",
+    "price_eur_per_kg": 17,
+    "regulatory_note": "Verify Novel Food status before use."
+  },
+  {
+    "name": "D-Ribose",
+    "price_eur_per_kg": 21.5,
+    "regulatory_note": null
+  },
+  {
+    "name": "Dandelion Root Extract",
+    "price_eur_per_kg": 19,
+    "regulatory_note": null
+  },
+  {
+    "name": "DigeZyme®",
+    "price_eur_per_kg": 92,
+    "regulatory_note": null
+  },
+  {
+    "name": "DL-Malic-Acid",
+    "price_eur_per_kg": 2.38,
+    "regulatory_note": null
+  },
+  {
+    "name": "DNF-10®",
+    "price_eur_per_kg": 200,
+    "regulatory_note": null
+  },
+  {
+    "name": "Enzyme Blend (for Gut Expert)",
+    "price_eur_per_kg": 58,
+    "regulatory_note": null
+  },
+  {
+    "name": "Fennel seed exract",
+    "price_eur_per_kg": 22,
+    "regulatory_note": null
+  },
+  {
+    "name": "Fenugreek Extract 50%",
+    "price_eur_per_kg": 31,
+    "regulatory_note": null
+  },
+  {
+    "name": "Fisetin 98%",
+    "price_eur_per_kg": 302,
+    "regulatory_note": "Novel Food status – no EU authorisation known. Verify before use."
+  },
+  {
+    "name": "Flax Seed Extract",
+    "price_eur_per_kg": 21.3,
+    "regulatory_note": null
+  },
+  {
+    "name": "Folic Acid",
+    "price_eur_per_kg": 95,
+    "regulatory_note": null
+  },
+  {
+    "name": "FOREST FRUITS FLAVOUR 905.052",
+    "price_eur_per_kg": 42.5,
+    "regulatory_note": null
+  },
+  {
+    "name": "GABA",
+    "price_eur_per_kg": 27,
+    "regulatory_note": null
+  },
+  {
+    "name": "Garlic Extract",
+    "price_eur_per_kg": 33,
+    "regulatory_note": null
+  },
+  {
+    "name": "Ginger Root Extract",
+    "price_eur_per_kg": 33,
+    "regulatory_note": null
+  },
+  {
+    "name": "Ginseng Root Extract",
+    "price_eur_per_kg": 31,
+    "regulatory_note": null
+  },
+  {
+    "name": "Glucomannan",
+    "price_eur_per_kg": 65,
+    "regulatory_note": null
+  },
+  {
+    "name": "Glucosamine Sulfate 2KCI",
+    "price_eur_per_kg": 8,
+    "regulatory_note": null
+  },
+  {
+    "name": "Glycine",
+    "price_eur_per_kg": 6.8,
+    "regulatory_note": null
+  },
+  {
+    "name": "GRAPE FLAVOUR 905.026",
+    "price_eur_per_kg": 54.5,
+    "regulatory_note": null
+  },
+  {
+    "name": "Green Tea Extract (50% EGCG)",
+    "price_eur_per_kg": 26.3,
+    "regulatory_note": "Reg. (EU) 2022/2340: EGCG must stay below 800 mg/day; mandatory label warnings."
+  },
+  {
+    "name": "Guarana Extract",
+    "price_eur_per_kg": 27,
+    "regulatory_note": null
+  },
+  {
+    "name": "Harpagophytum Extract (Devil's claw)",
+    "price_eur_per_kg": 40.38,
+    "regulatory_note": null
+  },
+  {
+    "name": "Horsetail Extract",
+    "price_eur_per_kg": 21.5,
+    "regulatory_note": null
+  },
+  {
+    "name": "Inulin from Agave",
+    "price_eur_per_kg": 5,
+    "regulatory_note": null
+  },
+  {
+    "name": "Juniper Berry Extract",
+    "price_eur_per_kg": 22,
+    "regulatory_note": null
+  },
+  {
+    "name": "L-Carnitine Tartrate",
+    "price_eur_per_kg": 23,
+    "regulatory_note": null
+  },
+  {
+    "name": "L-Citrulline DL-Malate",
+    "price_eur_per_kg": 12.67,
+    "regulatory_note": null
+  },
+  {
+    "name": "L-Selenomethionine",
+    "price_eur_per_kg": 87,
+    "regulatory_note": null
+  },
+  {
+    "name": "L-Theanine (from Green Tea)",
+    "price_eur_per_kg": 26.5,
+    "regulatory_note": null
+  },
+  {
+    "name": "L-Tyrosine",
+    "price_eur_per_kg": 11,
+    "regulatory_note": null
+  },
+  {
+    "name": "Lactase 100000 ALU/gm",
+    "price_eur_per_kg": 93,
+    "regulatory_note": null
+  },
+  {
+    "name": "LactoSpore® (Bacillus coagulans)",
+    "price_eur_per_kg": 915,
+    "regulatory_note": null
+  },
+  {
+    "name": "Lemon Balm Extract",
+    "price_eur_per_kg": 18.6,
+    "regulatory_note": null
+  },
+  {
+    "name": "Lions Mane Extract 10:1",
+    "price_eur_per_kg": 22,
+    "regulatory_note": null
+  },
+  {
+    "name": "Lutein",
+    "price_eur_per_kg": 42,
+    "regulatory_note": null
+  },
+  {
+    "name": "Magnesium Bisglycinate 12%",
+    "price_eur_per_kg": 9.3,
+    "regulatory_note": null
+  },
+  {
+    "name": "Magnesium Bisglycinate 20%",
+    "price_eur_per_kg": 7.76,
+    "regulatory_note": null
+  },
+  {
+    "name": "Magnesium Citrate Anhydrous",
+    "price_eur_per_kg": 7.7,
+    "regulatory_note": null
+  },
+  {
+    "name": "Magnesium malate - 14-17,5% Mg",
+    "price_eur_per_kg": 11.97,
+    "regulatory_note": null
+  },
+  {
+    "name": "Magnesium Stearate",
+    "price_eur_per_kg": 5.5,
+    "regulatory_note": null
+  },
+  {
+    "name": "Marigold (20% Lutein and 4% Zeaxanthin)",
+    "price_eur_per_kg": 75,
+    "regulatory_note": null
+  },
+  {
+    "name": "Melatonin",
+    "price_eur_per_kg": 100,
+    "regulatory_note": "National (BG) limits/classification apply – verify dose."
+  },
+  {
+    "name": "Methylfolate L-5-MTHF",
+    "price_eur_per_kg": 2100,
+    "regulatory_note": "Check salt form – only authorised folate forms permitted."
+  },
+  {
+    "name": "Microcrystalline Cellulose",
+    "price_eur_per_kg": 3.15,
+    "regulatory_note": null
+  },
+  {
+    "name": "Milk Chocolate Flavour",
+    "price_eur_per_kg": 30,
+    "regulatory_note": null
+  },
+  {
+    "name": "Milk Thistie Extract",
+    "price_eur_per_kg": 35,
+    "regulatory_note": null
+  },
+  {
+    "name": "Moringa leaf Extract Powder",
+    "price_eur_per_kg": 20,
+    "regulatory_note": null
+  },
+  {
+    "name": "MSM Methylsulfonylmethane",
+    "price_eur_per_kg": 9.55,
+    "regulatory_note": null
+  },
+  {
+    "name": "Mushroom MIX Extract (Chaga,Reishi,Shiitake,Lions Mane, Cordyceps, Turkey Tail)",
+    "price_eur_per_kg": 20,
+    "regulatory_note": null
+  },
+  {
+    "name": "Nettle Root Extract",
+    "price_eur_per_kg": 20,
+    "regulatory_note": null
+  },
+  {
+    "name": "Niacinamide",
+    "price_eur_per_kg": 32,
+    "regulatory_note": null
+  },
+  {
+    "name": "Nicotinamide Riboside (NR)",
+    "price_eur_per_kg": 115,
+    "regulatory_note": "Authorised Novel Food only as NR chloride, with max daily levels – check form & spec."
+  },
+  {
+    "name": "NMN (B-NicotinamideMononucleotide)",
+    "price_eur_per_kg": 65.46,
+    "regulatory_note": "Novel Food – not authorised in the EU Union list. Do not use in food supplements for the EU market."
+  },
+  {
+    "name": "Olive Leaf Extract 20%",
+    "price_eur_per_kg": 30,
+    "regulatory_note": null
+  },
+  {
+    "name": "Oryza GEL 350 (оризово брашно)",
+    "price_eur_per_kg": 1.8,
+    "regulatory_note": null
+  },
+  {
+    "name": "Partially Hydrolyzed Guar Gum /PHGG (Fibalance®)",
+    "price_eur_per_kg": 12,
+    "regulatory_note": null
+  },
+  {
+    "name": "Passionfruit Flavour",
+    "price_eur_per_kg": 55,
+    "regulatory_note": null
+  },
+  {
+    "name": "Pea Protein",
+    "price_eur_per_kg": 4.2,
+    "regulatory_note": null
+  },
+  {
+    "name": "Peach Flavour",
+    "price_eur_per_kg": 50,
+    "regulatory_note": null
+  },
+  {
+    "name": "Peppermint Leaf Extract",
+    "price_eur_per_kg": 19,
+    "regulatory_note": null
+  },
+  {
+    "name": "Phosphatidylcholine",
+    "price_eur_per_kg": 45,
+    "regulatory_note": null
+  },
+  {
+    "name": "Phosphatidylserine",
+    "price_eur_per_kg": 115,
+    "regulatory_note": "Check source – soy PS is fine; fish-derived PS is a specific authorised Novel Food."
+  },
+  {
+    "name": "Pineapple Flavour",
+    "price_eur_per_kg": 37,
+    "regulatory_note": null
+  },
+  {
+    "name": "Probiotics Powder Premix (50 Strains) за Гът Експерт",
+    "price_eur_per_kg": 487.45,
+    "regulatory_note": null
+  },
+  {
+    "name": "Pumpkin Seed Extract",
+    "price_eur_per_kg": 27,
+    "regulatory_note": null
+  },
+  {
+    "name": "Quercetin Dihydrate 95%",
+    "price_eur_per_kg": 65,
+    "regulatory_note": null
+  },
+  {
+    "name": "Red Clover Extract",
+    "price_eur_per_kg": 53,
+    "regulatory_note": null
+  },
+  {
+    "name": "Reishi Mushroom Extract 10:1",
+    "price_eur_per_kg": 22,
+    "regulatory_note": null
+  },
+  {
+    "name": "Rhodiola Rosa Extract 3% rosavine 1% salidrose",
+    "price_eur_per_kg": 140.85,
+    "regulatory_note": null
+  },
+  {
+    "name": "Rice Protein",
+    "price_eur_per_kg": 3.95,
+    "regulatory_note": null
+  },
+  {
+    "name": "Sage Extract",
+    "price_eur_per_kg": 21.26,
+    "regulatory_note": null
+  },
+  {
+    "name": "Salty Caramel Flavour",
+    "price_eur_per_kg": 37,
+    "regulatory_note": null
+  },
+  {
+    "name": "Saw Palmetto Extract",
+    "price_eur_per_kg": 27,
+    "regulatory_note": null
+  },
+  {
+    "name": "Sea Salt",
+    "price_eur_per_kg": 0.26,
+    "regulatory_note": null
+  },
+  {
+    "name": "Shatavari extract powder",
+    "price_eur_per_kg": 20,
+    "regulatory_note": null
+  },
+  {
+    "name": "Shilajit Extract (20% fulvic acid)",
+    "price_eur_per_kg": 17,
+    "regulatory_note": "Novel Food status unclear in the EU – verify before use."
+  },
+  {
+    "name": "Silica (Fumed Silicon Dioxide)",
+    "price_eur_per_kg": 11,
+    "regulatory_note": null
+  },
+  {
+    "name": "Sodium Hyaluronate",
+    "price_eur_per_kg": 255,
+    "regulatory_note": null
+  },
+  {
+    "name": "SOLUGEL® Hydrolyzed Bovine Collagen Peptides",
+    "price_eur_per_kg": 10.4,
+    "regulatory_note": null
+  },
+  {
+    "name": "Spermidine 1%",
+    "price_eur_per_kg": 35,
+    "regulatory_note": "Authorised Novel Food only as spermidine-rich wheat germ extract – verify source & spec."
+  },
+  {
+    "name": "Stevia Extract E5",
+    "price_eur_per_kg": 93,
+    "regulatory_note": null
+  },
+  {
+    "name": "Stevia Extractn Andromeda",
+    "price_eur_per_kg": 160,
+    "regulatory_note": null
+  },
+  {
+    "name": "Strawberry Flavour",
+    "price_eur_per_kg": 46,
+    "regulatory_note": null
+  },
+  {
+    "name": "Sucralose",
+    "price_eur_per_kg": 21,
+    "regulatory_note": null
+  },
+  {
+    "name": "Taurine",
+    "price_eur_per_kg": 8.8,
+    "regulatory_note": null
+  },
+  {
+    "name": "Tripotassium Citrate",
+    "price_eur_per_kg": 2.5,
+    "regulatory_note": null
+  },
+  {
+    "name": "Trisodium Citrate Didhydrate",
+    "price_eur_per_kg": 2,
+    "regulatory_note": null
+  },
+  {
+    "name": "Tribulus Terrestis Extract 40%",
+    "price_eur_per_kg": 23,
+    "regulatory_note": null
+  },
+  {
+    "name": "Tribulus Terrestis Extract 90%",
+    "price_eur_per_kg": 27.6,
+    "regulatory_note": null
+  },
+  {
+    "name": "Tributyrin (Glyceryl Tributyrate) Powder 60%",
+    "price_eur_per_kg": 35,
+    "regulatory_note": "Verify Novel Food status before use."
+  },
+  {
+    "name": "Uva Ursi Extract",
+    "price_eur_per_kg": 21,
+    "regulatory_note": null
+  },
+  {
+    "name": "VANILLA FLAVOUR",
+    "price_eur_per_kg": 30,
+    "regulatory_note": null
+  },
+  {
+    "name": "Vitamin B1 (Thiamine HCI)",
+    "price_eur_per_kg": 42,
+    "regulatory_note": null
+  },
+  {
+    "name": "Vitamin B12 (1%)",
+    "price_eur_per_kg": 58,
+    "regulatory_note": null
+  },
+  {
+    "name": "Vitamin B3 (Niacin)",
+    "price_eur_per_kg": 30,
+    "regulatory_note": null
+  },
+  {
+    "name": "Vitamin B6 ( P5P )",
+    "price_eur_per_kg": 194,
+    "regulatory_note": null
+  },
+  {
+    "name": "Vitamin B8/ inositol/Myo-Inositol",
+    "price_eur_per_kg": 10.7,
+    "regulatory_note": null
+  },
+  {
+    "name": "Vitamin C (Ascorbic acid)",
+    "price_eur_per_kg": 3.6,
+    "regulatory_note": null
+  },
+  {
+    "name": "Vitamin D3",
+    "price_eur_per_kg": 25,
+    "regulatory_note": null
+  },
+  {
+    "name": "Vitamin E Acetate 50% powder",
+    "price_eur_per_kg": 51,
+    "regulatory_note": null
+  },
+  {
+    "name": "Vitamin K2",
+    "price_eur_per_kg": 95,
+    "regulatory_note": "Check form (menaquinone MK-7 as authorised Novel Food) and spec."
+  },
+  {
+    "name": "Whey Protein Concentrate 80%",
+    "price_eur_per_kg": 22,
+    "regulatory_note": null
+  },
+  {
+    "name": "White Willow Bark Extract",
+    "price_eur_per_kg": 22,
+    "regulatory_note": null
+  },
+  {
+    "name": "Zinc Citrate Trihydrate",
+    "price_eur_per_kg": 23,
+    "regulatory_note": null
+  },
+  {
+    "name": "Zinc Glycinate",
+    "price_eur_per_kg": 30,
+    "regulatory_note": null
+  }
+]
