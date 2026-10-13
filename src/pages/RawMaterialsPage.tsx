@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import {
   Alert,
   Box,
-  Button,
+  Chip,
   FormControlLabel,
   InputAdornment,
   Paper,
@@ -12,53 +12,20 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import UploadIcon from '@mui/icons-material/UploadFileOutlined';
 import SearchIcon from '@mui/icons-material/Search';
-import { NumberField } from '../components/NumberField';
 import { ResponsiveTable } from '../components/ResponsiveTable';
 import { useData } from '../data/DataContext';
-import { AddMaterialDialog } from '../materials/AddMaterialDialog';
-import { ImportDialog } from '../materials/ImportDialog';
 import { SettingsPanel } from '../materials/SettingsPanel';
 import { SyncCard } from '../materials/SyncCard';
-import { parseNum } from '../lib/numbers';
+import { formatEur } from '../lib/numbers';
 import { matchesQuery } from '../lib/search';
 import type { RawMaterial } from '../lib/types';
 import { fmt, t } from '../i18n';
 
 type Toast = { severity: 'success' | 'error'; message: string } | null;
-type Patch = Partial<Pick<RawMaterial, 'price_eur_per_kg' | 'regulatory_note' | 'active'>>;
 
-/** Price input that saves on blur / Enter when the value changed. */
-function PriceCell({ material, onSave }: { material: RawMaterial; onSave: (p: Patch) => void }) {
-  const [value, setValue] = useState(String(material.price_eur_per_kg));
-  const [seen, setSeen] = useState(material.price_eur_per_kg);
-  if (seen !== material.price_eur_per_kg) {
-    setSeen(material.price_eur_per_kg);
-    setValue(String(material.price_eur_per_kg));
-  }
-  const n = parseNum(value);
-  const invalid = n === null || n < 0;
-  const commit = () => {
-    if (invalid) return setValue(String(material.price_eur_per_kg));
-    if (n !== material.price_eur_per_kg) onSave({ price_eur_per_kg: n });
-  };
-  return (
-    <NumberField
-      value={value}
-      onChange={setValue}
-      onBlur={commit}
-      onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
-      error={invalid}
-      suffix="€"
-      sx={{ maxWidth: { xs: 150, md: 'none' } }}
-      slotProps={{ htmlInput: { 'aria-label': `${t.materials.price} – ${material.name}` } }}
-    />
-  );
-}
-
-function NoteCell({ material, onSave }: { material: RawMaterial; onSave: (p: Patch) => void }) {
+/** The regulatory note is the only raw-material field editable in the app; it saves on blur. */
+function NoteCell({ material, onSave }: { material: RawMaterial; onSave: (note: string | null) => void }) {
   const current = material.regulatory_note ?? '';
   const [value, setValue] = useState(current);
   const [seen, setSeen] = useState(current);
@@ -70,7 +37,7 @@ function NoteCell({ material, onSave }: { material: RawMaterial; onSave: (p: Pat
     <TextField
       value={value}
       onChange={(e) => setValue(e.target.value)}
-      onBlur={() => value.trim() !== current && onSave({ regulatory_note: value.trim() || null })}
+      onBlur={() => value.trim() !== current && onSave(value.trim() || null)}
       multiline
       maxRows={4}
       placeholder="–"
@@ -81,11 +48,9 @@ function NoteCell({ material, onSave }: { material: RawMaterial; onSave: (p: Pat
 }
 
 export function RawMaterialsPage() {
-  const { repo, materials, setMaterials, reloadMaterials } = useData();
+  const { repo, materials, setMaterials } = useData();
   const [query, setQuery] = useState('');
   const [showInactive, setShowInactive] = useState(false);
-  const [addOpen, setAddOpen] = useState(false);
-  const [importOpen, setImportOpen] = useState(false);
   const [toast, setToast] = useState<Toast>(null);
 
   const filtered = useMemo(
@@ -93,9 +58,9 @@ export function RawMaterialsPage() {
     [materials, showInactive, query],
   );
 
-  const update = async (m: RawMaterial, patch: Patch) => {
+  const saveNote = async (m: RawMaterial, note: string | null) => {
     try {
-      const updated = await repo.updateMaterial(m.id, patch);
+      const updated = await repo.updateRegulatoryNote(m.id, note);
       setMaterials((list) => list.map((x) => (x.id === m.id ? updated : x)));
       setToast({ severity: 'success', message: `${t.common.save}: ${m.name}` });
     } catch (e) {
@@ -105,24 +70,16 @@ export function RawMaterialsPage() {
 
   return (
     <Stack spacing={{ xs: 2, sm: 3 }}>
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ alignItems: { sm: 'center' } }}>
-        <Box sx={{ flexGrow: 1 }}>
-          <Typography variant="h1">{t.materials.title}</Typography>
-          <Typography variant="body2" color="text.secondary">
-            {fmt(t.materials.count, { n: materials.filter((m) => m.active).length })}
-          </Typography>
-        </Box>
-        <Stack direction="row" spacing={1}>
-          <Button variant="outlined" startIcon={<UploadIcon />} onClick={() => setImportOpen(true)}>
-            {t.materials.import}
-          </Button>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setAddOpen(true)}>
-            {t.materials.add}
-          </Button>
-        </Stack>
-      </Stack>
+      <Box>
+        <Typography variant="h1">{t.materials.title}</Typography>
+        <Typography variant="body2" color="text.secondary">
+          {fmt(t.materials.count, { n: materials.filter((m) => m.active).length })}
+        </Typography>
+      </Box>
 
       <SyncCard onSynced={(message, ok) => setToast({ severity: ok ? 'success' : 'error', message })} />
+
+      <Alert severity="info">{t.materials.managedInSheet}</Alert>
 
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ alignItems: { sm: 'center' } }}>
         <TextField
@@ -167,27 +124,26 @@ export function RawMaterialsPage() {
             {
               key: 'price',
               label: t.materials.price,
-              width: 150,
+              width: 130,
               align: 'right',
-              render: (m) => <PriceCell material={m} onSave={(p) => update(m, p)} />,
+              render: (m) => formatEur(m.price_eur_per_kg),
             },
             {
               key: 'note',
               label: t.materials.note,
-              render: (m) => <NoteCell material={m} onSave={(p) => update(m, p)} />,
+              render: (m) => <NoteCell material={m} onSave={(note) => saveNote(m, note)} />,
             },
             {
-              key: 'active',
-              label: t.materials.active,
-              width: 80,
+              key: 'status',
+              label: t.materials.status,
+              width: 120,
               align: 'center',
-              render: (m) => (
-                <Switch
-                  checked={m.active}
-                  onChange={(e) => update(m, { active: e.target.checked })}
-                  slotProps={{ input: { 'aria-label': `${t.materials.active} – ${m.name}` } }}
-                />
-              ),
+              render: (m) =>
+                m.active ? (
+                  <Chip size="small" color="success" variant="outlined" label={t.materials.statusActive} />
+                ) : (
+                  <Chip size="small" variant="outlined" label={t.materials.statusRemoved} />
+                ),
             },
           ]}
         />
@@ -195,26 +151,6 @@ export function RawMaterialsPage() {
 
       <SettingsPanel onSaved={(message) => setToast({ severity: 'success', message })} />
 
-      <AddMaterialDialog
-        open={addOpen}
-        materials={materials}
-        onClose={() => setAddOpen(false)}
-        onAdd={async (m) => {
-          const created = await repo.addMaterial(m);
-          setMaterials((list) => [...list, created].sort((a, b) => a.name.localeCompare(b.name)));
-          setToast({ severity: 'success', message: `${t.common.save}: ${created.name}` });
-        }}
-      />
-      <ImportDialog
-        open={importOpen}
-        materials={materials}
-        onClose={() => setImportOpen(false)}
-        onImport={async (items) => {
-          await repo.importMaterials(items);
-          await reloadMaterials();
-          setToast({ severity: 'success', message: fmt(t.materials.importDone, { n: items.length }) });
-        }}
-      />
       <Snackbar
         open={!!toast}
         autoHideDuration={toast?.severity === 'error' ? 8000 : 2500}

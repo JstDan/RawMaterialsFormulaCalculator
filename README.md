@@ -4,7 +4,7 @@ Internal web app for Nutrikal account managers: build a custom food-supplement f
 selling price, and download a client-facing PDF offer.
 
 Stack: React + TypeScript + Vite + MUI, Supabase (database + email/password auth), decimal.js for money,
-jsPDF + jspdf-autotable for PDF offers (embedded Roboto for Cyrillic), SheetJS for Excel/CSV import.
+jsPDF + jspdf-autotable for PDF offers (embedded Roboto for Cyrillic), SheetJS for reading the Google Sheet price list.
 
 ## Getting started
 
@@ -60,7 +60,7 @@ Every run is logged in the `sync_runs` table. In local demo mode the sync works 
 (through the Vite proxy), because Google does not allow direct browser downloads.
 
 The seed is generated from `Data/Raw_Materials_Price_List.xlsx`. After changing the spreadsheet, regenerate it
-with `node scripts/generate-seed.mjs` (later price updates are easier through the in-app import).
+with `node scripts/generate-seed.mjs`. After setup, all changes to raw materials are made in the Google Sheet.
 
 ## How it works
 
@@ -68,8 +68,10 @@ with `node scripts/generate-seed.mjs` (later price updates are easier through th
   until "New offer". Offer numbers (`NK-YYYY-0001`) are reserved when a new offer is started.
 - **Saved offers** (`/offers`) – each saved offer stores all inputs plus a snapshot of the raw material prices
   and fixed costs used, so later price changes never alter it.
-- **Raw materials** (`/materials`) – edit prices/notes, deactivate, import Excel/CSV
-  (`Raw Material`, `Price DDP/EUR/kg`), and settings (fixed costs, defaults, company details, logo, terms).
+- **Raw materials** (`/materials`) – read-only list synced from the Google Sheet (the **only** place to add,
+  remove or reprice materials); the regulatory note is the one editable field. Also holds the settings (fixed
+  costs, defaults, company details, logo, terms, Google Sheet link). The database enforces this: staff users can
+  only update `regulatory_note`.
 - The PDF only receives client-safe data (`toPdfModel` in `src/lib/pdf.ts`); costs, markup, margin, profit and
   purchasing requirements never reach it.
 - All UI labels are in `src/i18n/en.ts`; add `bg.ts` with the same shape for Bulgarian.

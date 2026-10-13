@@ -1,6 +1,6 @@
 import { FunctionsHttpError, type SupabaseClient } from '@supabase/supabase-js';
 import type { OfferInput, OfferRecord, RawMaterial, Settings, SyncRun } from '../lib/types';
-import type { DataRepo, MaterialImportItem } from './repo';
+import type { DataRepo } from './repo';
 
 interface SettingsRow {
   fixed_cost_capsules_glass: number | string;
@@ -81,19 +81,11 @@ export function createSupabaseRepo(sb: SupabaseClient): DataRepo {
       return (data as RawMaterial[]).map(toMaterial);
     },
 
-    async addMaterial(m) {
-      const data = check(await sb.from('raw_materials').insert(m).select().single());
+    async updateRegulatoryNote(id, note) {
+      const data = check(
+        await sb.from('raw_materials').update({ regulatory_note: note }).eq('id', id).select().single(),
+      );
       return toMaterial(data as RawMaterial);
-    },
-
-    async updateMaterial(id, patch) {
-      const data = check(await sb.from('raw_materials').update(patch).eq('id', id).select().single());
-      return toMaterial(data as RawMaterial);
-    },
-
-    async importMaterials(items: MaterialImportItem[]) {
-      if (!items.length) return;
-      check(await sb.from('raw_materials').upsert(items, { onConflict: 'name' }));
     },
 
     async getSettings() {

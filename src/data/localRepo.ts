@@ -1,5 +1,5 @@
 import { DEFAULT_SETTINGS, type OfferRecord, type RawMaterial, type Settings, type SyncRun } from '../lib/types';
-import { buildImportPreview, buildSyncPlan, extractSheetId, sheetExportPath } from '../lib/materialImport';
+import { buildImportPreview, buildSyncPlan, extractSheetId, sheetExportPath, type SyncPlan } from '../lib/materialImport';
 import { readStorage, writeStorage } from '../lib/storage';
 import { formatOfferNo, type DataRepo } from './repo';
 import seed from './seedMaterials.json';
@@ -31,6 +31,22 @@ function loadMaterials(): RawMaterial[] {
 
 const sortByName = (list: RawMaterial[]) => [...list].sort((a, b) => a.name.localeCompare(b.name));
 
+/** Apply a Google Sheet sync plan – the only way names, prices and active status change. */
+function applySyncPlan(plan: SyncPlan): void {
+  const list = loadMaterials();
+  const byName = new Map(list.map((m) => [m.name, m]));
+  for (const u of plan.upserts) {
+    const existing = byName.get(u.name);
+    if (existing) Object.assign(existing, { price_eur_per_kg: u.price_eur_per_kg, active: true, updated_at: now() });
+    else list.push({ ...u, regulatory_note: null, id: uid(), updated_at: now() });
+  }
+  for (const name of plan.deactivate) {
+    const existing = byName.get(name);
+    if (existing) Object.assign(existing, { active: false, updated_at: now() });
+  }
+  writeStorage(KEYS.materials, list);
+}
+
 export function createLocalRepo(): DataRepo {
   const repo: DataRepo = {
     mode: 'local',
@@ -39,40 +55,13 @@ export function createLocalRepo(): DataRepo {
       return sortByName(loadMaterials());
     },
 
-    async addMaterial(m) {
-      const list = loadMaterials();
-      if (list.some((x) => x.name.toLowerCase() === m.name.toLowerCase())) {
-        throw new Error('duplicate key value violates unique constraint "raw_materials_name_key"');
-      }
-      const created: RawMaterial = { ...m, id: uid(), active: true, updated_at: now() };
-      writeStorage(KEYS.materials, [...list, created]);
-      return created;
-    },
-
-    async updateMaterial(id, patch) {
+    async updateRegulatoryNote(id, note) {
       const list = loadMaterials();
       const idx = list.findIndex((x) => x.id === id);
       if (idx < 0) throw new Error('Material not found');
-      list[idx] = { ...list[idx], ...patch, updated_at: now() };
+      list[idx] = { ...list[idx], regulatory_note: note, updated_at: now() };
       writeStorage(KEYS.materials, list);
       return list[idx];
-    },
-
-    async importMaterials(items) {
-      const list = loadMaterials();
-      const byName = new Map(list.map((m) => [m.name, m]));
-      for (const item of items) {
-        const existing = byName.get(item.name);
-        if (existing) {
-          existing.price_eur_per_kg = item.price_eur_per_kg;
-          existing.updated_at = now();
-        } else {
-          const created: RawMaterial = { ...item, regulatory_note: null, id: uid(), active: true, updated_at: now() };
-          list.push(created);
-          byName.set(created.name, created);
-        }
-      }
-      writeStorage(KEYS.materials, list);
     },
 
     async getSettings() {
@@ -148,20 +137,7 @@ export function createLocalRepo(): DataRepo {
         const preview = buildImportPreview(rows, current);
         if (!preview) throw new Error('Columns "Raw Material" and "Price DDP/EUR/kg" were not found in the first sheet');
         const plan = buildSyncPlan(preview, current);
-        await repo.importMaterials(plan.upserts);
-        // Sheet decides what is active: removed rows are hidden, returning rows shown again.
-        const activeByName = new Map([
-          ...plan.upserts.map((u) => [u.name, true] as const),
-          ...plan.deactivate.map((name) => [name, false] as const),
-        ]);
-        writeStorage(
-          KEYS.materials,
-          loadMaterials().map((m) =>
-            activeByName.has(m.name) && activeByName.get(m.name) !== m.active
-              ? { ...m, active: activeByName.get(m.name)!, updated_at: now() }
-              : m,
-          ),
-        );
+        applySyncPlan(plan);
         return record({
           removed: plan.deactivate.length,
           restored: plan.reactivate.length,

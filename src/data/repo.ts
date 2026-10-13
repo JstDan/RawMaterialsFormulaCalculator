@@ -1,21 +1,14 @@
 import type { OfferInput, OfferRecord, RawMaterial, Settings, SyncRun } from '../lib/types';
 
-export interface MaterialImportItem {
-  name: string;
-  price_eur_per_kg: number;
-}
-
 /** Storage backend used by the app – Supabase in production, localStorage in demo mode. */
 export interface DataRepo {
   mode: 'supabase' | 'local';
   listMaterials(): Promise<RawMaterial[]>;
-  addMaterial(m: Pick<RawMaterial, 'name' | 'price_eur_per_kg' | 'regulatory_note'>): Promise<RawMaterial>;
-  updateMaterial(
-    id: string,
-    patch: Partial<Pick<RawMaterial, 'name' | 'price_eur_per_kg' | 'regulatory_note' | 'active'>>,
-  ): Promise<RawMaterial>;
-  /** Upsert by name: existing materials get the new price, unknown names are inserted. */
-  importMaterials(items: MaterialImportItem[]): Promise<void>;
+  /**
+   * Raw materials are managed in the Google Sheet only (names, prices, active status via sync).
+   * The regulatory note is the one field that can be edited in the app.
+   */
+  updateRegulatoryNote(id: string, note: string | null): Promise<RawMaterial>;
   getSettings(): Promise<Settings>;
   saveSettings(s: Settings): Promise<Settings>;
   /** Reserve the next sequential offer number (NK-YYYY-0001). */

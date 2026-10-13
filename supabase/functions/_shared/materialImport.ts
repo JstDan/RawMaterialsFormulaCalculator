@@ -1,5 +1,5 @@
-// Price-list import logic shared by the web app (Excel/CSV import, demo-mode sync) and the
-// sync-raw-materials Edge Function. Keep this file free of imports so it runs in both Vite and Deno.
+// Price-list sync logic shared by the web app (demo-mode sync) and the sync-raw-materials Edge Function.
+// Keep this file free of imports so it runs in both Vite and Deno.
 
 export interface ExistingMaterial {
   name: string;
@@ -77,12 +77,6 @@ export function buildImportPreview(
   return preview;
 }
 
-export function previewToUpserts(p: ImportPreview) {
-  return [
-    ...p.added.map((a) => ({ name: a.name, price_eur_per_kg: a.price })),
-    ...p.changed.map((c) => ({ name: c.name, price_eur_per_kg: c.newPrice })),
-  ];
-}
 
 /** Extract the Drive/Sheets file id from a share link (or accept a bare id). */
 export function extractSheetId(urlOrId: string): string | null {

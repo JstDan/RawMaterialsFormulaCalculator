@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildImportPreview, buildSyncPlan, extractSheetId, parsePrice, previewToUpserts } from './materialImport';
+import { buildImportPreview, buildSyncPlan, extractSheetId, parsePrice } from './materialImport';
 import type { RawMaterial } from './types';
 
 const mat = (name: string, price: number): RawMaterial => ({
@@ -30,10 +30,6 @@ describe('buildImportPreview', () => {
     expect(p.added).toEqual([{ name: 'New Extract', price: 12.5 }]);
     expect(p.invalid).toHaveLength(1);
     expect(p.missing).toEqual(['Taurine']);
-    expect(previewToUpserts(p)).toEqual([
-      { name: 'New Extract', price_eur_per_kg: 12.5 },
-      { name: 'Biotin 2%', price_eur_per_kg: 18 },
-    ]);
   });
 
   it('tolerates header variations and rejects missing columns', () => {
