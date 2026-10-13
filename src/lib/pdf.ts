@@ -227,7 +227,7 @@ export function createOfferPdf(m: OfferPdfModel, fonts: PdfFonts): jsPDF {
     ...(m.productName ? [[t.pdf.productName, m.productName] as [string, string]] : []),
     [t.pdf.productType, typeLabel(m.productType)],
     [t.pdf.packaging, packagingLabel(m.productType)],
-    [capsule ? t.pdf.capsulesPerJar : t.pdf.dosesPerPouch, m.quantityPerUnit],
+    [capsule ? t.pdf.capsulesPerBottle : t.pdf.dosesPerPouch, m.quantityPerUnit],
     ...(capsule && m.capsulesPerDose ? [[t.pdf.capsulesPerDose, m.capsulesPerDose] as [string, string]] : []),
   ];
   sectionTitle(t.pdf.product);
@@ -258,11 +258,11 @@ export function createOfferPdf(m: OfferPdfModel, fonts: PdfFonts): jsPDF {
   }
 
   // 6. Pricing
-  const unitWord = capsule ? t.pdf.jars : t.pdf.pouches;
+  const unitWord = capsule ? t.pdf.bottles : t.pdf.pouches;
   const description = [
     m.productName || typeLabel(m.productType),
     `${typeLabel(m.productType)}, ${packagingLabel(m.productType)}`,
-    `${capsule ? t.pdf.capsulesPerJar : t.pdf.dosesPerPouch}: ${m.quantityPerUnit}`,
+    `${capsule ? t.pdf.capsulesPerBottle : t.pdf.dosesPerPouch}: ${m.quantityPerUnit}`,
   ].join('\n');
   const foot: string[][] = [['', '', t.pdf.subtotal, formatEur(m.totalExclVat)]];
   if (m.vatRatePct !== null) {

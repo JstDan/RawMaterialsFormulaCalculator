@@ -9,12 +9,12 @@ import { t } from '../i18n';
 import type { SectionProps } from './sectionProps';
 
 export function quantityLabel(type: string | null) {
-  return type === 'powder' ? t.quantity.dosesPerPouch : t.quantity.capsulesPerJar;
+  return type === 'powder' ? t.quantity.dosesPerPouch : t.quantity.capsulesPerBottle;
 }
 
 export function unitsLabel(type: string | null) {
   if (!type) return t.units.units;
-  return type === 'powder' ? t.units.pouches : t.units.jars;
+  return type === 'powder' ? t.units.pouches : t.units.bottles;
 }
 
 export function QuantitySection({ form, setForm, errorFor, touch, result }: SectionProps & { result: CalcResult }) {
@@ -42,7 +42,7 @@ export function QuantitySection({ form, setForm, errorFor, touch, result }: Sect
           <Box sx={{ bgcolor: 'action.hover', borderRadius: 1, px: 2, py: 0.5 }}>
             {capsule && (
               <InfoLine
-                label={t.quantity.dosesPerJar}
+                label={t.quantity.dosesPerBottle}
                 value={result.dosesPerUnit !== null ? formatNumber(result.dosesPerUnit, 2) : '–'}
               />
             )}
