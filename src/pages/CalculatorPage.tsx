@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, Box, CircularProgress, Snackbar, Stack } from '@mui/material';
+import { Alert, Box, CircularProgress, Snackbar, Stack, Typography } from '@mui/material';
 import { ClientSection } from '../calculator/ClientSection';
 import { FormulaSection } from '../calculator/FormulaSection';
 import { MarkupSection } from '../calculator/MarkupSection';
@@ -98,6 +98,9 @@ export function CalculatorPage() {
   return (
     <Stack spacing={{ xs: 2, sm: 3 }}>
       {numberError && <Alert severity="error">{`${t.common.error}: ${numberError}`}</Alert>}
+      <Typography variant="body2" sx={{ color: 'error.main' }}>
+        {t.common.requiredLegend}
+      </Typography>
       <ClientSection {...sectionProps} />
       <ProductTypeSection {...sectionProps} fixedCosts={fixedCosts} />
       <FormulaSection {...sectionProps} materials={materials} result={result} />

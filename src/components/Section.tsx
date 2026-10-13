@@ -3,21 +3,24 @@ import { Avatar, Box, Paper, Stack, Typography } from '@mui/material';
 
 interface Props {
   step?: number;
+  /** Marks the whole section as required (red asterisk after the title). */
+  required?: boolean;
   title: string;
   id?: string;
   action?: ReactNode;
   children: ReactNode;
 }
 
-export function Section({ step, title, id, action, children }: Props) {
+export function Section({ step, title, id, action, required, children }: Props) {
   return (
     <Paper component="section" id={id} variant="outlined" sx={{ p: { xs: 2, sm: 3 }, scrollMarginTop: 80 }}>
       <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 2.5 }}>
         {step !== undefined && (
           <Avatar sx={{ bgcolor: 'primary.main', width: 30, height: 30, fontSize: 15, fontWeight: 700 }}>{step}</Avatar>
         )}
-        <Typography variant="h2" component="h2" sx={{ flexGrow: 1 }}>
+        <Typography variant="h2" component="h2" sx={{ flexGrow: 1, color: required ? 'error.main' : undefined }}>
           {title}
+          {required && <RequiredMark />}
         </Typography>
         {action}
       </Stack>
@@ -57,6 +60,15 @@ export function InfoLine({ label, value, strong }: { label: ReactNode; value: Re
       >
         {value}
       </Typography>
+    </Box>
+  );
+}
+
+/** Red asterisk used next to required section titles and in the legend. */
+export function RequiredMark() {
+  return (
+    <Box component="span" aria-hidden sx={{ color: 'error.main', ml: 0.5 }}>
+      *
     </Box>
   );
 }

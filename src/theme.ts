@@ -24,6 +24,13 @@ export const theme = createTheme({
       },
     },
     MuiTextField: { defaultProps: { size: 'small', fullWidth: true } },
+    // Required fields: red label and red "*" (also while focused).
+    MuiFormLabel: {
+      styleOverrides: {
+        root: ({ theme }) => ({ '&.Mui-required, &.Mui-required.Mui-focused': { color: theme.palette.error.main } }),
+        asterisk: ({ theme }) => ({ color: theme.palette.error.main }),
+      },
+    },
     MuiFormControl: { defaultProps: { size: 'small' } },
     MuiButton: { defaultProps: { disableElevation: true } },
     MuiPaper: { defaultProps: { elevation: 0 } },

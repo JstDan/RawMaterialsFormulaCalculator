@@ -113,7 +113,7 @@ export function FormulaSection({ form, setForm, errorFor, touch, materials, resu
     capsule && result.fillWeightPerCapsuleMg !== null && maxFill !== null && result.fillWeightPerCapsuleMg > maxFill;
 
   return (
-    <Section step={3} title={t.formula.section} id={fieldId('rows')}>
+    <Section step={3} title={t.formula.section} id={fieldId('rows')} required>
       <Stack spacing={2}>
         <div>
           <Autocomplete<RawMaterial>
@@ -284,6 +284,7 @@ export function FormulaSection({ form, setForm, errorFor, touch, materials, resu
               <NumberField
                 id={fieldId('capsulesPerDose')}
                 integer
+                required
                 label={t.formula.capsulesPerDose}
                 value={form.capsulesPerDose}
                 onChange={(v) => setForm((f) => ({ ...f, capsulesPerDose: v }))}

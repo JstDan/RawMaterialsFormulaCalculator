@@ -19,6 +19,7 @@ export const en = {
     loading: 'Loading…',
     error: 'Something went wrong',
     notFound: 'Page not found',
+    requiredLegend: 'Fields marked with * are required',
     backHome: 'Back to calculator',
   },
   auth: {
