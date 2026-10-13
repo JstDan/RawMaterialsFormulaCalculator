@@ -17,6 +17,8 @@ const base: CalcInput = {
   markupPct: 30,
   addVat: false,
   vatRatePct: 20,
+  discountPct: 0,
+  extraItems: [],
   fixedCosts: FIXED,
 };
 
@@ -88,6 +90,45 @@ describe('calculate', () => {
     expect(calculate({ ...base, rows: [] }).complete).toBe(false);
     expect(calculate({ ...base, productType: null }).complete).toBe(false);
     expect(calculate({ ...base, capsulesPerDose: null }).complete).toBe(false);
+  });
+});
+
+describe('offer lines (template)', () => {
+  it('reproduces the Nutrikal offer template totals', () => {
+    // Unit price 5.93, 1000 pcs, 5 % discount + three services → sub total 6317.50 EUR
+    const r = calculate({
+      ...base,
+      productType: 'capsules_plastic',
+      rows: [{ name: 'X', amount: 1, unit: 'mg', pricePerKg: 0 }],
+      capsulesPerDose: 1,
+      quantityPerUnit: 30,
+      numberOfUnits: 1000,
+      markupPct: 0,
+      fixedCosts: { ...FIXED, capsules_plastic: 5.93 },
+      discountPct: 5,
+      extraItems: [
+        { description: 'Free Sale Certificate', qty: 1, unit: 'pcs.', price: 300 },
+        { description: 'Certificate of analysis', qty: 1, unit: 'pcs.', price: 220 },
+        { description: 'Label design service', qty: 1, unit: 'pcs.', price: 200 },
+        { description: '', qty: 1, unit: 'pcs.', price: 99 }, // incomplete rows are ignored
+      ],
+    });
+    expect(r.unitPrice).toBe(5.93);
+    expect(r.productAmount).toBe(5633.5);
+    expect(r.extraLines.map((l) => l.amount)).toEqual([285, 209, 190]);
+    expect(r.extrasTotal).toBe(684);
+    expect(r.totalPriceExclVat).toBe(6317.5);
+    expect(r.discountAmount).toBe(332.5);
+    expect(r.totalInclVat).toBe(6317.5);
+    // Profit only covers the product line after discount
+    expect(r.profit).toBeCloseTo(5633.5 - 5930, 8);
+  });
+
+  it('applies VAT on the discounted sub total', () => {
+    const r = calculate({ ...base, discountPct: 10, addVat: true, vatRatePct: 20 });
+    expect(r.productAmount).toBe(3132); // 3.48 × 1000 × 0.9
+    expect(r.vatAmount).toBe(626.4);
+    expect(r.totalInclVat).toBe(3758.4);
   });
 });
 

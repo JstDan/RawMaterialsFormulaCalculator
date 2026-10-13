@@ -24,7 +24,27 @@ export interface CalcInput {
   markupPct: number | null;
   addVat: boolean;
   vatRatePct: number | null;
+  /** Discount % applied to every offer line (product and extra items). */
+  discountPct: number | null;
+  extraItems: ExtraItemInput[];
   fixedCosts: FixedCosts;
+}
+
+export interface ExtraItemInput {
+  description: string;
+  qty: number | null;
+  unit: string;
+  price: number | null;
+}
+
+/** One priced line of the client offer. */
+export interface OfferLine {
+  description: string;
+  qty: number;
+  unit: string;
+  price: number;
+  discountPct: number;
+  amount: number;
 }
 
 export interface RequirementLine {
@@ -46,8 +66,17 @@ export interface CalcResult {
   rawCostPerUnit: number;
   unitCost: number;
   unitPrice: number;
+  /** Product line after discount (unit price × units − discount). */
+  productAmount: number;
+  /** Extra lines after discount (only complete rows). */
+  extraLines: OfferLine[];
+  extrasTotal: number;
+  /** Total discount given across all lines. */
+  discountAmount: number;
   totalCost: number;
+  /** Sub total of all lines, excl. VAT. */
   totalPriceExclVat: number;
+  /** Product profit (product line after discount − product cost); extra items are not included. */
   profit: number;
   marginPct: number;
   vatAmount: number;
@@ -89,14 +118,39 @@ export function calculate(input: CalcInput): CalcResult {
   const markup = new Decimal(input.markupPct ?? 0);
   const unitPrice = unitCost.mul(markup.div(100).add(1)).toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
 
+  const round2 = (d: Decimal) => d.toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
+  const discount = Decimal.max(0, Decimal.min(100, new Decimal(input.discountPct ?? 0)));
+  const keep = new Decimal(1).sub(discount.div(100));
+
+  // Product line: amount = qty × unit price − discount (rounded per line, like the printed offer).
   const qty = new Decimal(complete ? units! : 0);
   const totalCost = unitCost.mul(qty);
-  const totalPrice = unitPrice.mul(qty);
-  const profit = totalPrice.sub(totalCost);
-  const marginPct = totalPrice.gt(0) ? profit.div(totalPrice).mul(100) : ZERO;
-  const vatAmount = input.addVat
-    ? totalPrice.mul(new Decimal(input.vatRatePct ?? 0).div(100)).toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
-    : ZERO;
+  const productGross = unitPrice.mul(qty);
+  const productAmount = round2(productGross.mul(keep));
+  const profit = productAmount.sub(totalCost);
+  const marginPct = productAmount.gt(0) ? profit.div(productAmount).mul(100) : ZERO;
+
+  // Extra lines: only rows with a description, a positive quantity and a price.
+  const extraLines: OfferLine[] = [];
+  let extrasGross = ZERO;
+  for (const item of input.extraItems) {
+    if (!item.description.trim() || !item.qty || item.qty <= 0 || item.price === null || item.price < 0) continue;
+    const gross = new Decimal(item.price).mul(item.qty);
+    extrasGross = extrasGross.add(gross);
+    extraLines.push({
+      description: item.description.trim(),
+      qty: item.qty,
+      unit: item.unit,
+      price: item.price,
+      discountPct: discount.toNumber(),
+      amount: round2(gross.mul(keep)).toNumber(),
+    });
+  }
+  const extrasTotal = extraLines.reduce((a, l) => a.add(l.amount), ZERO);
+
+  const subtotal = productAmount.add(extrasTotal);
+  const discountAmount = productGross.add(extrasGross).sub(subtotal);
+  const vatAmount = input.addVat ? round2(subtotal.mul(new Decimal(input.vatRatePct ?? 0).div(100))) : ZERO;
 
   const orderDoses = dosesPerUnit && units ? dosesPerUnit.mul(units) : ZERO;
   const requirements = input.rows.map((r, i) => {
@@ -116,12 +170,16 @@ export function calculate(input: CalcInput): CalcResult {
     rawCostPerUnit: rawCostPerUnit.toNumber(),
     unitCost: unitCost.toNumber(),
     unitPrice: complete ? unitPrice.toNumber() : 0,
+    productAmount: productAmount.toNumber(),
+    extraLines,
+    extrasTotal: extrasTotal.toNumber(),
+    discountAmount: discountAmount.toNumber(),
     totalCost: totalCost.toNumber(),
-    totalPriceExclVat: totalPrice.toNumber(),
+    totalPriceExclVat: subtotal.toNumber(),
     profit: profit.toNumber(),
     marginPct: marginPct.toNumber(),
     vatAmount: vatAmount.toNumber(),
-    totalInclVat: totalPrice.add(vatAmount).toNumber(),
+    totalInclVat: subtotal.add(vatAmount).toNumber(),
     requirements,
     requirementsTotalCost: requirements.reduce((a, r) => a.add(r.cost), ZERO).toNumber(),
   };
@@ -143,6 +201,13 @@ export function calcInputFromForm(form: OfferForm, fixedCosts: FixedCosts): Calc
     markupPct: parseNum(form.markup),
     addVat: form.addVat,
     vatRatePct: parseNum(form.vatRate),
+    discountPct: parseNum(form.discount ?? ''),
+    extraItems: (form.extraItems ?? []).map((x) => ({
+      description: x.description,
+      qty: parseNum(x.qty),
+      unit: x.unit,
+      price: parseNum(x.price),
+    })),
     fixedCosts: form.fixedCosts ?? fixedCosts,
   };
 }

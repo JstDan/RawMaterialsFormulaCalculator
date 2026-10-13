@@ -95,6 +95,13 @@ export function ClientSection({ form, setForm, errorFor, touch }: SectionProps) 
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
+                label={t.client.identificationNo}
+                value={form.invoice.identificationNo}
+                onChange={(e) => setInvoice({ identificationNo: e.target.value })}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField
                 label={t.client.vatNumber}
                 value={form.invoice.vatNumber}
                 onChange={(e) => setInvoice({ vatNumber: e.target.value })}

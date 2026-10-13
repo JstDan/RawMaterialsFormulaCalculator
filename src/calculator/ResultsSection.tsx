@@ -4,7 +4,7 @@ import PdfIcon from '@mui/icons-material/PictureAsPdfOutlined';
 import LockIcon from '@mui/icons-material/LockOutlined';
 import { ResponsiveTable } from '../components/ResponsiveTable';
 import { InfoLine, Section, SubHeading } from '../components/Section';
-import type { CalcResult, RequirementLine } from '../lib/calc';
+import type { CalcResult, OfferLine, RequirementLine } from '../lib/calc';
 import { formatEur, formatNumber, formatPct, parseNum } from '../lib/numbers';
 import { isCapsule, type OfferForm } from '../lib/types';
 import { packagingLabel, productTypeLabel } from './ProductTypeSection';
@@ -32,6 +32,7 @@ export function ResultsSection({ form, result, valid, busy, onSave, onDownloadPd
   const type = form.productType;
   const units = parseNum(form.numberOfUnits) ?? 0;
   const markup = parseNum(form.markup) ?? 0;
+  const discount = Math.min(100, Math.max(0, parseNum(form.discount) ?? 0));
 
   const requirementRows = r.requirements.map((line, i) => ({ ...line, key: form.rows[i]?.key ?? String(i) }));
 
@@ -66,6 +67,8 @@ export function ResultsSection({ form, result, valid, busy, onSave, onDownloadPd
               <InfoLine label={t.results.markupMargin} value={`${formatPct(markup)} / ${formatPct(r.marginPct)}`} />
               <InfoLine label={t.results.totalCost} value={formatEur(r.totalCost)} />
               <InfoLine label={t.results.totalProfit} value={formatEur(r.profit)} strong />
+              {r.discountAmount > 0 && <InfoLine label={t.results.discountGiven} value={formatEur(r.discountAmount)} />}
+              {r.extrasTotal > 0 && <InfoLine label={t.results.extrasTotal} value={formatEur(r.extrasTotal)} />}
             </Grid>
           </Grid>
 
@@ -114,7 +117,8 @@ export function ResultsSection({ form, result, valid, busy, onSave, onDownloadPd
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <InfoLine label={t.results.unitPrice} value={formatEur(r.unitPrice)} />
-              <InfoLine label={t.results.totalExclVat} value={formatEur(r.totalPriceExclVat)} strong={!form.addVat} />
+              {discount > 0 && <InfoLine label={t.results.discount} value={formatPct(discount, 2)} />}
+              <InfoLine label={t.results.subTotal} value={formatEur(r.totalPriceExclVat)} strong={!form.addVat} />
               {form.addVat && (
                 <>
                   <InfoLine label={`${t.results.vat} (${formatPct(parseNum(form.vatRate) ?? 0, 0)})`} value={formatEur(r.vatAmount)} />
@@ -123,6 +127,33 @@ export function ResultsSection({ form, result, valid, busy, onSave, onDownloadPd
               )}
             </Grid>
           </Grid>
+
+          {r.complete && (
+            <Box sx={{ mt: 2 }}>
+              <SubHeading>{t.results.offerLines}</SubHeading>
+              <ResponsiveTable<OfferLine & { key: string }>
+                rows={[
+                  {
+                    key: 'product',
+                    description: type ? `${form.offer.productName || productTypeLabel(type)}` : '–',
+                    qty: units,
+                    unit: 'pcs',
+                    price: r.unitPrice,
+                    discountPct: discount,
+                    amount: r.productAmount,
+                  },
+                  ...r.extraLines.map((l, i) => ({ ...l, key: `x${i}` })),
+                ]}
+                getKey={(l) => l.key}
+                columns={[
+                  { key: 'd', label: t.lines.description, primary: true, render: (l) => l.description },
+                  { key: 'q', label: t.lines.qty, width: 70, align: 'right', render: (l) => `${formatNumber(l.qty)} ${l.unit}` },
+                  { key: 'p', label: t.lines.price, width: 100, align: 'right', render: (l) => formatEur(l.price) },
+                  { key: 'a', label: t.lines.amount, width: 110, align: 'right', render: (l) => formatEur(l.amount) },
+                ]}
+              />
+            </Box>
+          )}
         </Paper>
 
         <Box>

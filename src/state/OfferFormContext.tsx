@@ -11,7 +11,7 @@ export function createEmptyForm(settings: Settings, offerNo: string): OfferForm 
   return {
     id: null,
     receiver: { fullName: '', address: '', city: '', zip: '', country: DEFAULT_COUNTRY, phone: '', email: '' },
-    invoice: { companyName: '', registrationAddress: '', vatNumber: '' },
+    invoice: { companyName: '', identificationNo: '', registrationAddress: '', vatNumber: '' },
     offer: { offerNo, offerDate: isoDate(0), validUntil: isoDate(30), productName: '' },
     productType: null,
     rows: [],
@@ -23,9 +23,27 @@ export function createEmptyForm(settings: Settings, offerNo: string): OfferForm 
     markup: String(settings.default_markup),
     addVat: false,
     vatRate: String(settings.default_vat_rate),
+    discount: '0',
+    extraItems: [],
+    paymentTerms: settings.default_payment_terms,
     includeComposition: true,
     notes: '',
     fixedCosts: null,
+  };
+}
+
+/** Fill fields added after a draft/offer was saved, so older offers keep working. */
+export function normalizeForm(f: OfferForm, settings: Settings): OfferForm {
+  const empty = createEmptyForm(settings, f.offer?.offerNo ?? '');
+  return {
+    ...empty,
+    ...f,
+    receiver: { ...empty.receiver, ...f.receiver },
+    invoice: { ...empty.invoice, ...f.invoice },
+    offer: { ...empty.offer, ...f.offer },
+    extraItems: f.extraItems ?? [],
+    discount: f.discount ?? '0',
+    paymentTerms: f.paymentTerms ?? settings.default_payment_terms,
   };
 }
 
@@ -59,7 +77,10 @@ const Ctx = createContext<OfferFormState | null>(null);
 
 export function OfferFormProvider({ children }: { children: ReactNode }) {
   const { repo, settings } = useData();
-  const [form, setFormState] = useState<OfferForm | null>(() => readStorage<OfferForm>(DRAFT_KEY));
+  const [form, setFormState] = useState<OfferForm | null>(() => {
+    const draft = readStorage<OfferForm>(DRAFT_KEY);
+    return draft ? normalizeForm(draft, settings) : null;
+  });
   const [numberError, setNumberError] = useState<string | null>(null);
   const [session, setSession] = useState(0);
   const started = useRef(false);
@@ -93,11 +114,14 @@ export function OfferFormProvider({ children }: { children: ReactNode }) {
     setFormState((f) => (f ? updater(f) : f));
   }, []);
 
-  const loadForm = useCallback((f: OfferForm, fresh = false) => {
-    if (fresh) setSession((s) => s + 1);
-    setNumberError(null);
-    setFormState(f);
-  }, []);
+  const loadForm = useCallback(
+    (f: OfferForm, fresh = false) => {
+      if (fresh) setSession((s) => s + 1);
+      setNumberError(null);
+      setFormState(normalizeForm(f, settings));
+    },
+    [settings],
+  );
 
   const value = useMemo(
     () => ({ form, numberError, setForm, newOffer, loadForm, session }),

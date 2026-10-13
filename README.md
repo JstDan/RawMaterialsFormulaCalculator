@@ -4,7 +4,8 @@ Internal web app for Nutrikal account managers: build a custom food-supplement f
 selling price, and download a client-facing PDF offer.
 
 Stack: React + TypeScript + Vite + MUI, Supabase (database + email/password auth), decimal.js for money,
-jsPDF + jspdf-autotable for PDF offers (embedded Roboto for Cyrillic), SheetJS for reading the Google Sheet price list.
+jsPDF + jspdf-autotable for PDF offers (Poppins, with Roboto as Cyrillic fallback), SheetJS for reading the Google Sheet
+price list.
 
 ## Getting started
 
@@ -74,6 +75,11 @@ with `node scripts/generate-seed.mjs`. After setup, all changes to raw materials
   only update `regulatory_note`.
 - The PDF only receives client-safe data (`toPdfModel` in `src/lib/pdf.ts`); costs, markup, margin, profit and
   purchasing requirements never reach it.
+- **PDF offer** follows Nutrikal's offer template: brand marks, OFFER / Number / Date / Due at, CUSTOMER and
+  SUPPLIER blocks, a DESCRIPTION / QTY / UNIT / PRICE / DISCOUNT % / AMOUNT table (product line + extra lines such as
+  certificates), Sub Total / Tax VAT / Payment total, bank details or VAT exemption, payment terms and a note with
+  packaging and composition per dose. Supplier, bank, texts and extra-line presets are edited in Settings; the
+  migration `…_offer_template.sql` adds them to Supabase.
 - All UI labels are in `src/i18n/en.ts`; add `bg.ts` with the same shape for Bulgarian.
 
 ## Scripts

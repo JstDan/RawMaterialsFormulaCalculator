@@ -30,7 +30,7 @@ import { calcInputFromForm, calculate } from '../lib/calc';
 import { formatDate, formatEur } from '../lib/numbers';
 import { matchesQuery } from '../lib/search';
 import type { OfferRecord } from '../lib/types';
-import { duplicateForm, useOfferForm } from '../state/OfferFormContext';
+import { duplicateForm, normalizeForm, useOfferForm } from '../state/OfferFormContext';
 import { fmt, t } from '../i18n';
 
 export function SavedOffersPage() {
@@ -88,7 +88,7 @@ export function SavedOffersPage() {
   const pdf = (o: OfferRecord) =>
     run(o.id, async () => {
       const { downloadOfferPdf } = await import('../lib/pdf');
-      const data = { ...o.data, offer: { ...o.data.offer, offerNo: o.offer_no } };
+      const data = normalizeForm({ ...o.data, offer: { ...o.data.offer, offerNo: o.offer_no } }, settings);
       // Recalculate from the stored snapshot (prices + fixed costs at the time of saving).
       const result = calculate(calcInputFromForm(data, data.fixedCosts ?? settings.fixed_costs));
       await downloadOfferPdf(data, result, settings);

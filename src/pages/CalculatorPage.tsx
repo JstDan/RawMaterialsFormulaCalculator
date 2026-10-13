@@ -3,6 +3,7 @@ import { Alert, Box, CircularProgress, Snackbar, Stack } from '@mui/material';
 import { ClientSection } from '../calculator/ClientSection';
 import { FormulaSection } from '../calculator/FormulaSection';
 import { MarkupSection } from '../calculator/MarkupSection';
+import { OfferLinesSection } from '../calculator/OfferLinesSection';
 import { ProductTypeSection } from '../calculator/ProductTypeSection';
 import { QuantitySection, UnitsSection } from '../calculator/QuantitySections';
 import { ResultsSection } from '../calculator/ResultsSection';
@@ -103,6 +104,7 @@ export function CalculatorPage() {
       <QuantitySection {...sectionProps} result={result} />
       <UnitsSection {...sectionProps} />
       <MarkupSection {...sectionProps} />
+      <OfferLinesSection {...sectionProps} presets={settings.service_presets} />
       <ResultsSection
         form={form}
         result={result}

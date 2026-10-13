@@ -1,22 +1,24 @@
 import { FunctionsHttpError, type SupabaseClient } from '@supabase/supabase-js';
-import type { OfferInput, OfferRecord, RawMaterial, Settings, SyncRun } from '../lib/types';
+import {
+  DEFAULT_SETTINGS,
+  type OfferInput,
+  type OfferRecord,
+  type RawMaterial,
+  type ServicePreset,
+  type Settings,
+  type SyncRun,
+} from '../lib/types';
 import type { DataRepo } from './repo';
 
-interface SettingsRow {
+/** Flat settings row: the text columns map 1:1 to Settings, numbers/JSON are converted below. */
+type SettingsRow = Omit<Settings, 'fixed_costs' | 'default_markup' | 'default_vat_rate' | 'service_presets'> & {
   fixed_cost_capsules_glass: number | string;
   fixed_cost_capsules_plastic: number | string;
   fixed_cost_powder: number | string;
   default_markup: number | string;
   default_vat_rate: number | string;
-  company_name: string;
-  company_address: string;
-  company_vat: string;
-  company_email: string;
-  company_phone: string;
-  logo_data_url: string | null;
-  terms_text: string;
-  google_sheet_url: string;
-}
+  service_presets: ServicePreset[] | null;
+};
 
 // Postgres numeric columns arrive as strings or numbers depending on size.
 const num = (v: number | string | null | undefined) => Number(v ?? 0);
@@ -29,41 +31,40 @@ function toOffer(r: OfferRecord): OfferRecord {
   return { ...r, total_excl_vat: num(r.total_excl_vat), total_incl_vat: num(r.total_incl_vat) };
 }
 
-function fromSettingsRow(r: SettingsRow): Settings {
+function fromSettingsRow(r: SettingsRow & { id?: number; updated_at?: string }): Settings {
+  const {
+    fixed_cost_capsules_glass,
+    fixed_cost_capsules_plastic,
+    fixed_cost_powder,
+    default_markup,
+    default_vat_rate,
+    service_presets,
+    id: _id,
+    updated_at: _updated,
+    ...text
+  } = r;
   return {
+    ...DEFAULT_SETTINGS,
+    ...Object.fromEntries(Object.entries(text).filter(([, v]) => v !== null && v !== undefined)),
+    logo_data_url: r.logo_data_url ?? null,
     fixed_costs: {
-      capsules_glass: num(r.fixed_cost_capsules_glass),
-      capsules_plastic: num(r.fixed_cost_capsules_plastic),
-      powder: num(r.fixed_cost_powder),
+      capsules_glass: num(fixed_cost_capsules_glass),
+      capsules_plastic: num(fixed_cost_capsules_plastic),
+      powder: num(fixed_cost_powder),
     },
-    default_markup: num(r.default_markup),
-    default_vat_rate: num(r.default_vat_rate),
-    company_name: r.company_name,
-    company_address: r.company_address,
-    company_vat: r.company_vat,
-    company_email: r.company_email,
-    company_phone: r.company_phone,
-    logo_data_url: r.logo_data_url,
-    terms_text: r.terms_text,
-    google_sheet_url: r.google_sheet_url ?? '',
+    default_markup: num(default_markup),
+    default_vat_rate: num(default_vat_rate),
+    service_presets: (service_presets ?? []).map((p) => ({ ...p, price: num(p.price) })),
   };
 }
 
 function toSettingsRow(s: Settings): SettingsRow {
+  const { fixed_costs, ...rest } = s;
   return {
-    fixed_cost_capsules_glass: s.fixed_costs.capsules_glass,
-    fixed_cost_capsules_plastic: s.fixed_costs.capsules_plastic,
-    fixed_cost_powder: s.fixed_costs.powder,
-    default_markup: s.default_markup,
-    default_vat_rate: s.default_vat_rate,
-    company_name: s.company_name,
-    company_address: s.company_address,
-    company_vat: s.company_vat,
-    company_email: s.company_email,
-    company_phone: s.company_phone,
-    logo_data_url: s.logo_data_url,
-    terms_text: s.terms_text,
-    google_sheet_url: s.google_sheet_url,
+    ...rest,
+    fixed_cost_capsules_glass: fixed_costs.capsules_glass,
+    fixed_cost_capsules_plastic: fixed_costs.capsules_plastic,
+    fixed_cost_powder: fixed_costs.powder,
   };
 }
 

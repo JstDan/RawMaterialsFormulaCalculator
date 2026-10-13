@@ -9,7 +9,9 @@ export type FieldKey =
   | 'rows'
   | 'capsulesPerDose'
   | 'quantityPerUnit'
-  | 'numberOfUnits';
+  | 'numberOfUnits'
+  | 'discount'
+  | 'extraItems';
 
 /** Field order = order on the page, used to scroll to the first error. */
 export const FIELD_ORDER: FieldKey[] = [
@@ -20,6 +22,8 @@ export const FIELD_ORDER: FieldKey[] = [
   'capsulesPerDose',
   'quantityPerUnit',
   'numberOfUnits',
+  'discount',
+  'extraItems',
 ];
 
 export const fieldId = (key: FieldKey) => `field-${key.replace('.', '-')}`;
@@ -43,6 +47,14 @@ export function validateOffer(form: OfferForm): ValidationErrors {
     errors.capsulesPerDose = t.validation.positiveInt;
   if (!parsePositiveInt(form.quantityPerUnit)) errors.quantityPerUnit = t.validation.positiveInt;
   if (!parsePositiveInt(form.numberOfUnits)) errors.numberOfUnits = t.validation.positiveInt;
+  const discount = parseNum(form.discount || '0');
+  if (discount === null || discount < 0 || discount > 100) errors.discount = t.validation.discount;
+  const badItem = form.extraItems.some((x) => {
+    const qty = parseNum(x.qty);
+    const price = parseNum(x.price);
+    return !x.description.trim() || qty === null || qty <= 0 || price === null || price < 0;
+  });
+  if (badItem) errors.extraItems = t.validation.extraItems;
   return errors;
 }
 

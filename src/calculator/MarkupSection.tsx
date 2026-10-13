@@ -1,13 +1,16 @@
-import { Box, Divider, FormControlLabel, Grid, Slider, Stack, Switch, TextField, Typography } from '@mui/material';
+import { Box, FormControlLabel, Grid, Slider, Stack, Switch, Typography } from '@mui/material';
 import { NumberField } from '../components/NumberField';
 import { Section } from '../components/Section';
 import { marginFromMarkup } from '../lib/calc';
 import { formatPct, parseNum } from '../lib/numbers';
+import { fieldId } from '../lib/validation';
 import { t } from '../i18n';
 import type { SectionProps } from './sectionProps';
 
-export function MarkupSection({ form, setForm }: SectionProps) {
+export function MarkupSection({ form, setForm, errorFor }: SectionProps) {
   const markup = parseNum(form.markup) ?? 0;
+  const discount = parseNum(form.discount);
+  const discountInvalid = form.discount.trim() !== '' && (discount === null || discount < 0 || discount > 100);
 
   return (
     <Section step={6} title={t.markup.section}>
@@ -44,6 +47,20 @@ export function MarkupSection({ form, setForm }: SectionProps) {
           </Typography>
         </Box>
 
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, sm: 4 }}>
+            <NumberField
+              label={t.markup.discount}
+              helperText={t.markup.discountHint}
+              value={form.discount}
+              onChange={(v) => setForm((f) => ({ ...f, discount: v }))}
+              id={fieldId('discount')}
+              error={discountInvalid || !!errorFor('discount')}
+              suffix="%"
+            />
+          </Grid>
+        </Grid>
+
         <Grid container spacing={2} sx={{ alignItems: 'center' }}>
           <Grid size={{ xs: 12, sm: 4 }}>
             <FormControlLabel
@@ -64,26 +81,6 @@ export function MarkupSection({ form, setForm }: SectionProps) {
             </Grid>
           )}
         </Grid>
-
-        <Divider />
-
-        <TextField
-          label={t.markup.notes}
-          helperText={t.markup.notesHint}
-          multiline
-          minRows={3}
-          value={form.notes}
-          onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-        />
-        <FormControlLabel
-          control={
-            <Switch
-              checked={form.includeComposition}
-              onChange={(e) => setForm((f) => ({ ...f, includeComposition: e.target.checked }))}
-            />
-          }
-          label={t.markup.includeComposition}
-        />
       </Stack>
     </Section>
   );

@@ -22,15 +22,35 @@ export interface RawMaterial {
 
 export type FixedCosts = Record<ProductType, number>;
 
+/** A ready-made extra line for offers (certificates, design services…). */
+export interface ServicePreset {
+  description: string;
+  unit: string;
+  price: number;
+}
+
 export interface Settings {
   fixed_costs: FixedCosts;
   default_markup: number;
   default_vat_rate: number;
+  /** Supplier block on the PDF offer. */
   company_name: string;
-  company_address: string;
+  company_id: string;
   company_vat: string;
+  company_address: string;
   company_email: string;
   company_phone: string;
+  /** Payment block on the PDF offer. */
+  bank_iban: string;
+  bank_name: string;
+  bank_bic: string;
+  bank_address: string;
+  default_payment_terms: string;
+  /** Shown next to the bank details when VAT is not added. */
+  vat_exemption_text: string;
+  footer_text: string;
+  websites: string;
+  service_presets: ServicePreset[];
   logo_data_url: string | null;
   terms_text: string;
   /** Google Sheet / Drive .xlsx share link the price list is synced from. */
@@ -41,16 +61,38 @@ export const DEFAULT_SETTINGS: Settings = {
   fixed_costs: { capsules_glass: 2.5, capsules_plastic: 2.2, powder: 2.7 },
   default_markup: 30,
   default_vat_rate: 20,
-  company_name: 'Nutrikal',
-  company_address: 'Bulgaria',
-  company_vat: '',
+  company_name: 'Nutrikal Ltd',
+  company_id: 'BG202245000',
+  company_vat: 'BG202245000',
+  company_address: '133 Knyaz Boriz 1 Blvd., 9000 Varna, Bulgaria',
   company_email: 'sales@nutrikal.com',
   company_phone: '',
+  bank_iban: 'BG04FINV91501017654214 (EUR)',
+  bank_name: 'First Investment Bank AD',
+  bank_bic: 'FINVBGSF',
+  bank_address: '37 Dragan Tsankov Blvd, 1797 Sofia, Bulgaria',
+  default_payment_terms: '100% advance payment',
+  vat_exemption_text: 'VAT Exemption',
+  footer_text: 'Thank you for your business!',
+  websites: 'Nutrikal.com, MadeByNatureLabs.com',
+  service_presets: [
+    { description: 'Free Sale Certificate', unit: 'pcs.', price: 300 },
+    { description: 'Certificate of analysis', unit: 'pcs.', price: 220 },
+    { description: 'Label design service', unit: 'pcs.', price: 200 },
+  ],
   logo_data_url: null,
   google_sheet_url: 'https://docs.google.com/spreadsheets/d/1dfylFe0D-xWlQ1PXcVUAGtNrPNS4bGJK/edit?usp=sharing',
-  terms_text:
-    'Prices are in EUR excl. VAT. Lead time and MOQ to be confirmed upon order. Final label text subject to EU regulatory review.',
+  terms_text: '',
 };
+
+/** Extra offer line next to the product (certificate, design service…). Numbers as typed. */
+export interface ExtraItem {
+  key: string;
+  description: string;
+  qty: string;
+  unit: string;
+  price: string;
+}
 
 /** One ingredient line of the formula. Price and note are a snapshot taken when the row was added. */
 export interface FormulaRow {
@@ -77,6 +119,8 @@ export interface OfferForm {
   };
   invoice: {
     companyName: string;
+    /** Company identification no. (e.g. EIK / registration number). */
+    identificationNo: string;
     registrationAddress: string;
     vatNumber: string;
   };
@@ -96,6 +140,10 @@ export interface OfferForm {
   markup: string;
   addVat: boolean;
   vatRate: string;
+  /** Discount % applied to every offer line. */
+  discount: string;
+  extraItems: ExtraItem[];
+  paymentTerms: string;
   includeComposition: boolean;
   notes: string;
   /** Fixed costs snapshot; null means "use current settings" (unsaved offers). */
