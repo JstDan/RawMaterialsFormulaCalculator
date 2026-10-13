@@ -82,6 +82,26 @@ with `node scripts/generate-seed.mjs`. After setup, all changes to raw materials
   migration `…_offer_template.sql` adds them to Supabase.
 - All UI labels are in `src/i18n/en.ts`; add `bg.ts` with the same shape for Bulgarian.
 
+## Deploying to Netlify
+
+The repo is ready for Netlify (`netlify.toml`): build `npm run build`, publish `dist`, Node 22, SPA routing,
+security headers and `noindex` (internal tool).
+
+1. Netlify → **Add new site → Import an existing project** → pick the GitHub repo
+   (`dmnutrikal/Nutrikal-Formula-Calculator`). Build settings are read from `netlify.toml`.
+2. **Site configuration → Environment variables** – add, then redeploy:
+   - `VITE_SUPABASE_URL` – your Supabase project URL
+   - `VITE_SUPABASE_ANON_KEY` – the project's `anon` (public) key
+3. In Supabase → **Authentication → URL Configuration**, set the Site URL to the Netlify address.
+
+> ⚠️ **Always deploy with the Supabase variables.** Without them the site runs in *local demo mode*: no login,
+> data only in each visitor's browser, and the demo price list (purchase prices) is part of the published files,
+> so anyone with the link could read it. With the variables set, the build contains no price data and every
+> request requires a staff login.
+
+In demo mode the Google Sheet sync uses the Netlify function `netlify/functions/gsheet.mts` (Google blocks direct
+browser downloads). With Supabase the sync runs in the `sync-raw-materials` Edge Function instead.
+
 ## Scripts
 
 | Command             | What it does                    |

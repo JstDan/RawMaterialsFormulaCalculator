@@ -14,9 +14,18 @@ import { DEFAULT_SETTINGS, type RawMaterial, type Settings, type SyncRun } from 
 import type { DataRepo } from './repo';
 import { supabase } from './supabaseClient';
 import { createSupabaseRepo } from './supabaseRepo';
-import { createLocalRepo } from './localRepo';
 
-const repo: DataRepo = supabase ? createSupabaseRepo(supabase) : createLocalRepo();
+/**
+ * Supabase when its keys are present at build time; otherwise the local demo backend. The check uses the
+ * build-time env values, so production builds with Supabase never include the demo data (price list).
+ */
+async function loadRepo(): Promise<DataRepo> {
+  if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) return createSupabaseRepo(supabase!);
+  const { createLocalRepo } = await import('./localRepo');
+  return createLocalRepo();
+}
+
+const repo: DataRepo = await loadRepo();
 
 /** Price list is pulled from the Google Sheet at least this often (in addition to the daily server job). */
 export const SYNC_INTERVAL_MS = 24 * 60 * 60 * 1000;
