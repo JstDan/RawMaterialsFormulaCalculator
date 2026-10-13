@@ -1,4 +1,4 @@
-import type { OfferInput, OfferRecord, RawMaterial, Settings } from '../lib/types';
+import type { OfferInput, OfferRecord, RawMaterial, Settings, SyncRun } from '../lib/types';
 
 export interface MaterialImportItem {
   name: string;
@@ -24,6 +24,9 @@ export interface DataRepo {
   getOffer(id: string): Promise<OfferRecord | null>;
   saveOffer(offer: OfferInput): Promise<OfferRecord>;
   deleteOffer(id: string): Promise<void>;
+  /** Pull names + prices from the Google Sheet in settings (one-way, sheet -> raw materials). */
+  syncFromSheet(source: 'manual' | 'auto'): Promise<SyncRun>;
+  lastSyncRun(): Promise<SyncRun | null>;
 }
 
 export function formatOfferNo(year: number, n: number): string {

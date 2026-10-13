@@ -33,6 +33,8 @@ export interface Settings {
   company_phone: string;
   logo_data_url: string | null;
   terms_text: string;
+  /** Google Sheet / Drive .xlsx share link the price list is synced from. */
+  google_sheet_url: string;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -45,6 +47,7 @@ export const DEFAULT_SETTINGS: Settings = {
   company_email: 'sales@nutrikal.com',
   company_phone: '',
   logo_data_url: null,
+  google_sheet_url: 'https://docs.google.com/spreadsheets/d/1dfylFe0D-xWlQ1PXcVUAGtNrPNS4bGJK/edit?usp=sharing',
   terms_text:
     'Prices are in EUR excl. VAT. Lead time and MOQ to be confirmed upon order. Final label text subject to EU regulatory review.',
 };
@@ -117,3 +120,17 @@ export interface OfferRecord {
 }
 
 export type OfferInput = Omit<OfferRecord, 'id' | 'created_by' | 'created_at' | 'updated_at'> & { id?: string | null };
+
+/** One run of the Google Sheet price-list sync. */
+export interface SyncRun {
+  id: string;
+  created_at: string;
+  source: 'manual' | 'scheduled' | 'auto';
+  status: 'success' | 'error';
+  added: number;
+  changed: number;
+  unchanged: number;
+  invalid: number;
+  missing: number;
+  error: string | null;
+}

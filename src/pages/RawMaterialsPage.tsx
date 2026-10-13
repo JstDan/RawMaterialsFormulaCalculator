@@ -21,6 +21,7 @@ import { useData } from '../data/DataContext';
 import { AddMaterialDialog } from '../materials/AddMaterialDialog';
 import { ImportDialog } from '../materials/ImportDialog';
 import { SettingsPanel } from '../materials/SettingsPanel';
+import { SyncCard } from '../materials/SyncCard';
 import { parseNum } from '../lib/numbers';
 import { matchesQuery } from '../lib/search';
 import type { RawMaterial } from '../lib/types';
@@ -120,6 +121,8 @@ export function RawMaterialsPage() {
           </Button>
         </Stack>
       </Stack>
+
+      <SyncCard onSynced={(message, ok) => setToast({ severity: ok ? 'success' : 'error', message })} />
 
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ alignItems: { sm: 'center' } }}>
         <TextField

@@ -4,6 +4,7 @@ import UploadIcon from '@mui/icons-material/UploadFileOutlined';
 import { NumberField } from '../components/NumberField';
 import { Section, SubHeading } from '../components/Section';
 import { useData } from '../data/DataContext';
+import { extractSheetId } from '../lib/materialImport';
 import { parseNum } from '../lib/numbers';
 import { PRODUCT_TYPES, type ProductType, type Settings } from '../lib/types';
 import { t } from '../i18n';
@@ -42,7 +43,8 @@ export function SettingsPanel({ onSaved }: { onSaved: (message: string) => void 
     markup: parseNum(draft.default_markup),
     vat: parseNum(draft.default_vat_rate),
   };
-  const valid = Object.values(numbers).every((n) => n !== null && n >= 0);
+  const sheetIdOk = !!extractSheetId(draft.google_sheet_url);
+  const valid = Object.values(numbers).every((n) => n !== null && n >= 0) && sheetIdOk;
 
   const pickLogo = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -187,6 +189,13 @@ export function SettingsPanel({ onSaved }: { onSaved: (message: string) => void 
             )}
           </Stack>
         </div>
+        <TextField
+          label={t.sync.sheetUrl}
+          value={draft.google_sheet_url}
+          onChange={(e) => set({ google_sheet_url: e.target.value })}
+          error={!sheetIdOk}
+          helperText={sheetIdOk ? t.sync.sheetUrlHint : t.sync.sheetUrlInvalid}
+        />
         <TextField
           label={t.settings.terms}
           multiline

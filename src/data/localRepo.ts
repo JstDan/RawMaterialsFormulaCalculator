@@ -1,4 +1,5 @@
-import { DEFAULT_SETTINGS, type OfferRecord, type RawMaterial, type Settings } from '../lib/types';
+import { DEFAULT_SETTINGS, type OfferRecord, type RawMaterial, type Settings, type SyncRun } from '../lib/types';
+import { buildImportPreview, extractSheetId, previewToUpserts, sheetExportPath } from '../lib/materialImport';
 import { readStorage, writeStorage } from '../lib/storage';
 import { formatOfferNo, type DataRepo } from './repo';
 import seed from './seedMaterials.json';
@@ -9,6 +10,7 @@ const KEYS = {
   settings: 'nk.local.settings',
   offers: 'nk.local.offers',
   counters: 'nk.local.offerCounters',
+  lastSync: 'nk.local.lastSync',
 };
 
 const now = () => new Date().toISOString();
@@ -30,7 +32,7 @@ function loadMaterials(): RawMaterial[] {
 const sortByName = (list: RawMaterial[]) => [...list].sort((a, b) => a.name.localeCompare(b.name));
 
 export function createLocalRepo(): DataRepo {
-  return {
+  const repo: DataRepo = {
     mode: 'local',
 
     async listMaterials() {
@@ -123,5 +125,45 @@ export function createLocalRepo(): DataRepo {
         offers.filter((o) => o.id !== id),
       );
     },
+
+    async syncFromSheet(source) {
+      // Demo mode only: Google sends no CORS headers, so the download goes through the Vite dev proxy (/gsheet).
+      const record = (run: Omit<SyncRun, 'id' | 'created_at' | 'source'>): SyncRun => {
+        const full: SyncRun = { id: uid(), created_at: now(), source, ...run };
+        writeStorage(KEYS.lastSync, full);
+        return full;
+      };
+      const empty = { added: 0, changed: 0, unchanged: 0, invalid: 0, missing: 0 };
+      try {
+        const fileId = extractSheetId((await repo.getSettings()).google_sheet_url);
+        if (!fileId) throw new Error('Google Sheet link in Settings is missing or invalid');
+        const res = await fetch(`/gsheet${sheetExportPath(fileId)}`);
+        if (!res.ok || (res.headers.get('content-type') ?? '').includes('text/html')) {
+          throw new Error(`Could not download the sheet (HTTP ${res.status}). In demo mode sync only works with "npm run dev".`);
+        }
+        const XLSX = await import('xlsx');
+        const wb = XLSX.read(await res.arrayBuffer());
+        const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(wb.Sheets[wb.SheetNames[0]], { defval: null });
+        const preview = buildImportPreview(rows, loadMaterials());
+        if (!preview) throw new Error('Columns "Raw Material" and "Price DDP/EUR/kg" were not found in the first sheet');
+        await repo.importMaterials(previewToUpserts(preview));
+        return record({
+          status: 'success',
+          error: null,
+          added: preview.added.length,
+          changed: preview.changed.length,
+          unchanged: preview.unchanged.length,
+          invalid: preview.invalid.length,
+          missing: preview.missing.length,
+        });
+      } catch (e) {
+        return record({ status: 'error', error: (e as Error).message, ...empty });
+      }
+    },
+
+    async lastSyncRun() {
+      return readStorage<SyncRun>(KEYS.lastSync);
+    },
   };
+  return repo;
 }

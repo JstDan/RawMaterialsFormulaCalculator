@@ -1,5 +1,5 @@
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { OfferInput, OfferRecord, RawMaterial, Settings } from '../lib/types';
+import { FunctionsHttpError, type SupabaseClient } from '@supabase/supabase-js';
+import type { OfferInput, OfferRecord, RawMaterial, Settings, SyncRun } from '../lib/types';
 import type { DataRepo, MaterialImportItem } from './repo';
 
 interface SettingsRow {
@@ -15,6 +15,7 @@ interface SettingsRow {
   company_phone: string;
   logo_data_url: string | null;
   terms_text: string;
+  google_sheet_url: string;
 }
 
 // Postgres numeric columns arrive as strings or numbers depending on size.
@@ -44,6 +45,7 @@ function fromSettingsRow(r: SettingsRow): Settings {
     company_phone: r.company_phone,
     logo_data_url: r.logo_data_url,
     terms_text: r.terms_text,
+    google_sheet_url: r.google_sheet_url ?? '',
   };
 }
 
@@ -61,6 +63,7 @@ function toSettingsRow(s: Settings): SettingsRow {
     company_phone: s.company_phone,
     logo_data_url: s.logo_data_url,
     terms_text: s.terms_text,
+    google_sheet_url: s.google_sheet_url,
   };
 }
 
@@ -127,6 +130,26 @@ export function createSupabaseRepo(sb: SupabaseClient): DataRepo {
 
     async deleteOffer(id) {
       check(await sb.from('offers').delete().eq('id', id));
+    },
+
+    async syncFromSheet(source) {
+      const { data, error } = await sb.functions.invoke<SyncRun>('sync-raw-materials', { body: { source } });
+      if (error) {
+        // The function answers failed syncs with the logged run as JSON (HTTP 500).
+        if (error instanceof FunctionsHttpError) {
+          const run = (await error.context.json().catch(() => null)) as SyncRun | null;
+          if (run?.status) return run;
+        }
+        throw new Error(error.message);
+      }
+      return data as SyncRun;
+    },
+
+    async lastSyncRun() {
+      const data = check(
+        await sb.from('sync_runs').select('*').order('created_at', { ascending: false }).limit(1).maybeSingle(),
+      );
+      return (data as SyncRun | null) ?? null;
     },
   };
 }

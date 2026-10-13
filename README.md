@@ -28,6 +28,34 @@ all offers/settings are kept in the browser's localStorage. Useful for trying it
 3. In **Authentication → Providers → Email**, disable "Allow new users to sign up". Create staff accounts in
    **Authentication → Users → Add user**.
 
+### Google Sheet price-list sync
+
+Raw material names and prices are pulled one-way from the spreadsheet in **Settings → Google Sheet link**
+(default: the Nutrikal price list in Drive). It must be shared as *Anyone with the link – Viewer* and have the
+columns `Raw Material` and `Price DDP/EUR/kg` in the first sheet. New names are added and changed prices
+updated; nothing is deleted. Works for native Google Sheets and for `.xlsx` files stored in Drive.
+
+- **Manual:** "Sync" button on the Raw materials page.
+- **Daily:** pg_cron calls the Edge Function at 03:00 UTC.
+- **Fallback:** when the app is open and the last sync is older than 24 h, it syncs automatically.
+
+Setup:
+
+```bash
+supabase functions deploy sync-raw-materials --no-verify-jwt   # the function checks auth itself
+supabase secrets set SYNC_CRON_SECRET=<random string>
+```
+
+Then in the SQL editor (before or after running `…_google_sheet_sync.sql`):
+
+```sql
+select vault.create_secret('https://<project-ref>.supabase.co', 'project_url');
+select vault.create_secret('<same random string>', 'sync_cron_secret');
+```
+
+Every run is logged in the `sync_runs` table. In local demo mode the sync works with `npm run dev`
+(through the Vite proxy), because Google does not allow direct browser downloads.
+
 The seed is generated from `Data/Raw_Materials_Price_List.xlsx`. After changing the spreadsheet, regenerate it
 with `node scripts/generate-seed.mjs` (later price updates are easier through the in-app import).
 
