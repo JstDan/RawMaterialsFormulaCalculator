@@ -1,9 +1,12 @@
+import type { ReactNode } from 'react';
 import { Route, Routes, useNavigate } from 'react-router-dom';
 import { Alert, Box, Chip, CircularProgress, Tooltip, Typography } from '@mui/material';
 import { AppLayout } from './components/AppLayout';
 import { AuthProvider, useAuth } from './data/AuthContext';
 import { DataProvider, useData } from './data/DataContext';
+import { CalculatorPage } from './pages/CalculatorPage';
 import { LoginPage } from './pages/LoginPage';
+import { OfferFormProvider, useOfferForm } from './state/OfferFormContext';
 import { t } from './i18n';
 
 function Loading() {
@@ -15,12 +18,9 @@ function Loading() {
 }
 
 function AppRoutes() {
-  const { loading, error } = useData();
-  if (loading) return <Loading />;
-  if (error) return <Alert severity="error">{`${t.common.error}: ${error}`}</Alert>;
   return (
     <Routes>
-      <Route path="/" element={<Typography variant="h1">{t.nav.calculator}</Typography>} />
+      <Route path="/" element={<CalculatorPage />} />
       <Route path="/offers" element={<Typography variant="h1">{t.offers.title}</Typography>} />
       <Route path="/materials" element={<Typography variant="h1">{t.materials.title}</Typography>} />
       <Route path="*" element={<Typography>{t.common.notFound}</Typography>} />
@@ -28,24 +28,58 @@ function AppRoutes() {
   );
 }
 
+function Shell({ badge, onLogout }: { badge: ReactNode; onLogout?: () => void }) {
+  const { newOffer } = useOfferForm();
+  const navigate = useNavigate();
+  const startNewOffer = () => {
+    void newOffer();
+    navigate('/');
+    window.scrollTo({ top: 0 });
+  };
+  return (
+    <AppLayout onNewOffer={startNewOffer} onLogout={onLogout} badge={badge}>
+      <AppRoutes />
+    </AppLayout>
+  );
+}
+
+function DataGate({ badge, onLogout }: { badge: ReactNode; onLogout?: () => void }) {
+  const { loading, error } = useData();
+  if (loading || error) {
+    return (
+      <AppLayout onNewOffer={() => undefined} onLogout={onLogout} badge={badge}>
+        {error ? <Alert severity="error">{`${t.common.error}: ${error}`}</Alert> : <Loading />}
+      </AppLayout>
+    );
+  }
+  return (
+    <OfferFormProvider>
+      <Shell badge={badge} onLogout={onLogout} />
+    </OfferFormProvider>
+  );
+}
+
 function AuthGate() {
   const { ready, session, demo, signOut } = useAuth();
-  const navigate = useNavigate();
 
   if (!ready) return <Loading />;
   if (!demo && !session) return <LoginPage />;
 
   const badge = demo ? (
     <Tooltip title={t.nav.demoModeHint}>
-      <Chip size="small" color="warning" variant="outlined" label={t.nav.demoMode} sx={{ display: { xs: 'none', sm: 'flex' } }} />
+      <Chip
+        size="small"
+        color="warning"
+        variant="outlined"
+        label={t.nav.demoMode}
+        sx={{ display: { xs: 'none', sm: 'flex' } }}
+      />
     </Tooltip>
   ) : null;
 
   return (
     <DataProvider>
-      <AppLayout onNewOffer={() => navigate('/')} onLogout={demo ? undefined : () => void signOut()} badge={badge}>
-        <AppRoutes />
-      </AppLayout>
+      <DataGate badge={badge} onLogout={demo ? undefined : () => void signOut()} />
     </DataProvider>
   );
 }

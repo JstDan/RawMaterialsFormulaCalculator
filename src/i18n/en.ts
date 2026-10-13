@@ -124,6 +124,7 @@ export const en = {
   },
   results: {
     section: 'Calculation results',
+    internalTitle: 'Internal breakdown',
     internal: 'Internal – not shown to client',
     rawCostPerDose: 'Raw material cost per dose',
     rawCostPerUnit: 'Raw material cost per unit',
