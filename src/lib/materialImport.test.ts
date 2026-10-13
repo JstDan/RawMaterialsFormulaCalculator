@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildImportPreview, extractSheetId, parsePrice, previewToUpserts } from './materialImport';
+import { buildImportPreview, buildSyncPlan, extractSheetId, parsePrice, previewToUpserts } from './materialImport';
 import type { RawMaterial } from './types';
 
 const mat = (name: string, price: number): RawMaterial => ({
@@ -58,5 +58,36 @@ describe('sheet helpers', () => {
     expect(extractSheetId(`https://drive.google.com/uc?export=download&id=${id}`)).toBe(id);
     expect(extractSheetId(id)).toBe(id);
     expect(extractSheetId('not a link')).toBeNull();
+  });
+});
+
+describe('buildSyncPlan', () => {
+  const list = [mat('Biotin 2%', 17), mat('Glycine', 6.8), mat('Taurine', 8.8), { ...mat('Old Extract', 5), active: false }];
+  const sheet = (rows: [string, number][]) =>
+    buildImportPreview(
+      rows.map(([n, p]) => ({ 'Raw Material': n, 'Price DDP/EUR/kg': p })),
+      list,
+    )!;
+
+  it('deactivates materials removed from the sheet', () => {
+    const plan = buildSyncPlan(sheet([['Biotin 2%', 17], ['Glycine', 7]]), list);
+    expect(plan.deactivate).toEqual(['Taurine']); // Old Extract is already inactive
+    expect(plan.reactivate).toEqual([]);
+    expect(plan.upserts).toEqual([{ name: 'Glycine', price_eur_per_kg: 7, active: true }]);
+  });
+
+  it('reactivates materials that are back in the sheet', () => {
+    const plan = buildSyncPlan(
+      sheet([['Biotin 2%', 17], ['Glycine', 6.8], ['Taurine', 8.8], ['old extract', 5]]),
+      list,
+    );
+    expect(plan.deactivate).toEqual([]);
+    expect(plan.reactivate).toEqual(['Old Extract']);
+    expect(plan.upserts).toEqual([{ name: 'Old Extract', price_eur_per_kg: 5, active: true }]);
+  });
+
+  it('refuses to sync an empty sheet', () => {
+    const empty = buildImportPreview([{ 'Raw Material': 'Broken', 'Price DDP/EUR/kg': 'x' }], list)!;
+    expect(() => buildSyncPlan(empty, list)).toThrow(/no valid/);
   });
 });

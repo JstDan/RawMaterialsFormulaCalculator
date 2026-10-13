@@ -1,5 +1,6 @@
 // Syncs raw-material names and prices from the Google Sheet / Drive .xlsx in settings.google_sheet_url.
-// One-way: sheet -> raw_materials. New names are inserted, changed prices updated, nothing is deleted.
+// Sheet -> raw_materials: new names are inserted, changed prices updated, materials removed from the
+// sheet are deactivated (hidden from the calculator, never deleted) and returning ones reactivated.
 //
 // Callers:
 //   - the web app ("Sync" button, and the 24h fallback on app open) with the user's JWT
@@ -9,7 +10,7 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import * as XLSX from 'npm:xlsx@0.18.5';
-import { buildImportPreview, extractSheetId, previewToUpserts, sheetExportPath } from '../_shared/materialImport.ts';
+import { buildImportPreview, buildSyncPlan, extractSheetId, sheetExportPath } from '../_shared/materialImport.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -69,14 +70,18 @@ Deno.serve(async (req) => {
     const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(wb.Sheets[wb.SheetNames[0]], { defval: null });
 
     // --- Compare and upsert --------------------------------------------------------------------
-    const { data: materials, error: mErr } = await admin.from('raw_materials').select('name, price_eur_per_kg');
+    const { data: materials, error: mErr } = await admin.from('raw_materials').select('name, price_eur_per_kg, active');
     if (mErr) throw new Error(mErr.message);
     const preview = buildImportPreview(rows, materials ?? []);
     if (!preview) throw new Error('Columns "Raw Material" and "Price DDP/EUR/kg" were not found in the first sheet');
+    const plan = buildSyncPlan(preview, materials ?? []);
 
-    const upserts = previewToUpserts(preview);
-    if (upserts.length) {
-      const { error } = await admin.from('raw_materials').upsert(upserts, { onConflict: 'name' });
+    if (plan.upserts.length) {
+      const { error } = await admin.from('raw_materials').upsert(plan.upserts, { onConflict: 'name' });
+      if (error) throw new Error(error.message);
+    }
+    if (plan.deactivate.length) {
+      const { error } = await admin.from('raw_materials').update({ active: false }).in('name', plan.deactivate);
       if (error) throw new Error(error.message);
     }
 
@@ -87,7 +92,15 @@ Deno.serve(async (req) => {
       unchanged: preview.unchanged.length,
       invalid: preview.invalid.length,
       missing: preview.missing.length,
-      details: { added: preview.added, changed: preview.changed, invalid: preview.invalid, missing: preview.missing },
+      removed: plan.deactivate.length,
+      restored: plan.reactivate.length,
+      details: {
+        added: preview.added,
+        changed: preview.changed,
+        invalid: preview.invalid,
+        removed: plan.deactivate,
+        restored: plan.reactivate,
+      },
     });
     return json(run);
   } catch (e) {

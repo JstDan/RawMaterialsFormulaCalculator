@@ -1,5 +1,5 @@
 import { DEFAULT_SETTINGS, type OfferRecord, type RawMaterial, type Settings, type SyncRun } from '../lib/types';
-import { buildImportPreview, extractSheetId, previewToUpserts, sheetExportPath } from '../lib/materialImport';
+import { buildImportPreview, buildSyncPlan, extractSheetId, sheetExportPath } from '../lib/materialImport';
 import { readStorage, writeStorage } from '../lib/storage';
 import { formatOfferNo, type DataRepo } from './repo';
 import seed from './seedMaterials.json';
@@ -133,7 +133,7 @@ export function createLocalRepo(): DataRepo {
         writeStorage(KEYS.lastSync, full);
         return full;
       };
-      const empty = { added: 0, changed: 0, unchanged: 0, invalid: 0, missing: 0 };
+      const empty = { added: 0, changed: 0, unchanged: 0, invalid: 0, missing: 0, removed: 0, restored: 0 };
       try {
         const fileId = extractSheetId((await repo.getSettings()).google_sheet_url);
         if (!fileId) throw new Error('Google Sheet link in Settings is missing or invalid');
@@ -144,10 +144,27 @@ export function createLocalRepo(): DataRepo {
         const XLSX = await import('xlsx');
         const wb = XLSX.read(await res.arrayBuffer());
         const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(wb.Sheets[wb.SheetNames[0]], { defval: null });
-        const preview = buildImportPreview(rows, loadMaterials());
+        const current = loadMaterials();
+        const preview = buildImportPreview(rows, current);
         if (!preview) throw new Error('Columns "Raw Material" and "Price DDP/EUR/kg" were not found in the first sheet');
-        await repo.importMaterials(previewToUpserts(preview));
+        const plan = buildSyncPlan(preview, current);
+        await repo.importMaterials(plan.upserts);
+        // Sheet decides what is active: removed rows are hidden, returning rows shown again.
+        const activeByName = new Map([
+          ...plan.upserts.map((u) => [u.name, true] as const),
+          ...plan.deactivate.map((name) => [name, false] as const),
+        ]);
+        writeStorage(
+          KEYS.materials,
+          loadMaterials().map((m) =>
+            activeByName.has(m.name) && activeByName.get(m.name) !== m.active
+              ? { ...m, active: activeByName.get(m.name)!, updated_at: now() }
+              : m,
+          ),
+        );
         return record({
+          removed: plan.deactivate.length,
+          restored: plan.reactivate.length,
           status: 'success',
           error: null,
           added: preview.added.length,

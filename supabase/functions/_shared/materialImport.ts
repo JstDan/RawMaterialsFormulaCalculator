@@ -4,6 +4,8 @@
 export interface ExistingMaterial {
   name: string;
   price_eur_per_kg: number;
+  /** Missing means active (e.g. rows from an older select). */
+  active?: boolean;
 }
 
 export interface ImportPreview {
@@ -11,7 +13,7 @@ export interface ImportPreview {
   changed: { name: string; oldPrice: number; newPrice: number }[];
   unchanged: string[];
   invalid: { row: number; reason: string }[];
-  /** Existing materials that are not in the imported file (reported only, never deleted). */
+  /** Existing materials that are not in the imported file. */
   missing: string[];
 }
 
@@ -93,4 +95,38 @@ export function extractSheetId(urlOrId: string): string | null {
 /** Download path (relative to https://docs.google.com) that exports native Sheets and uploaded .xlsx alike. */
 export function sheetExportPath(fileId: string): string {
   return `/spreadsheets/d/${fileId}/export?format=xlsx`;
+}
+
+export interface SyncPlan {
+  /** Rows to upsert by name; everything in the sheet ends up active. */
+  upserts: { name: string; price_eur_per_kg: number; active: true }[];
+  /** Active materials no longer in the sheet – deactivated (hidden from the calculator, never deleted). */
+  deactivate: string[];
+  /** Inactive materials that are back in the sheet. */
+  reactivate: string[];
+}
+
+/**
+ * Turn a preview into a sheet -> database sync plan. The sheet is the source of truth for which
+ * materials are active. Throws when the sheet has no valid rows, so a broken or emptied sheet can
+ * never deactivate the whole price list.
+ */
+export function buildSyncPlan(p: ImportPreview, materials: ExistingMaterial[]): SyncPlan {
+  if (!p.added.length && !p.changed.length && !p.unchanged.length) {
+    throw new Error('The sheet has no valid raw material rows – nothing was changed');
+  }
+  const byName = new Map(materials.map((m) => [m.name, m]));
+  const inactive = (name: string) => byName.get(name)?.active === false;
+  const reactivate = [...p.changed.map((c) => c.name), ...p.unchanged].filter(inactive);
+  return {
+    upserts: [
+      ...p.added.map((a) => ({ name: a.name, price_eur_per_kg: a.price, active: true as const })),
+      ...p.changed.map((c) => ({ name: c.name, price_eur_per_kg: c.newPrice, active: true as const })),
+      ...p.unchanged
+        .filter(inactive)
+        .map((name) => ({ name, price_eur_per_kg: Number(byName.get(name)!.price_eur_per_kg), active: true as const })),
+    ],
+    deactivate: p.missing.filter((name) => !inactive(name)),
+    reactivate,
+  };
 }

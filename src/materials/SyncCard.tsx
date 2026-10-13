@@ -17,7 +17,8 @@ export function SyncCard({ onSynced }: { onSynced: (message: string, ok: boolean
   const sync = async () => {
     try {
       const run = await syncNow('manual');
-      if (run.status === 'success') onSynced(fmt(t.sync.okShort, { added: run.added, changed: run.changed }), true);
+      if (run.status === 'success')
+        onSynced(fmt(t.sync.okShort, { added: run.added, changed: run.changed, removed: run.removed ?? 0 }), true);
       else onSynced(`${t.sync.failed}: ${run.error ?? ''}`, false);
     } catch (e) {
       onSynced(`${t.sync.failed}: ${(e as Error).message}`, false);
@@ -76,10 +77,16 @@ export function SyncCard({ onSynced }: { onSynced: (message: string, ok: boolean
                 {fmt(t.sync.invalidRows, { n: lastSync.invalid })}
               </>
             )}
-            {lastSync.missing > 0 && (
+            {(lastSync.removed ?? 0) > 0 && (
               <>
                 <br />
-                {fmt(t.sync.missing, { n: lastSync.missing })}
+                {fmt(t.sync.removed, { n: lastSync.removed })}
+              </>
+            )}
+            {(lastSync.restored ?? 0) > 0 && (
+              <>
+                <br />
+                {fmt(t.sync.restored, { n: lastSync.restored })}
               </>
             )}
           </Alert>

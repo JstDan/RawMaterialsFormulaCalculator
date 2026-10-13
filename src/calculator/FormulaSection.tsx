@@ -192,6 +192,7 @@ export function FormulaSection({ form, setForm, errorFor, touch, materials, resu
           <Stack spacing={1}>
             {form.rows.map((row, i) => {
               const dup = !!row.materialId && (idCounts.get(row.materialId) ?? 0) > 1;
+              const removed = !!row.materialId && byId.get(row.materialId)?.active === false;
               const amountInvalid = row.amount.trim() !== '' && (parseNum(row.amount) ?? 0) <= 0;
               return (
                 <Paper
@@ -216,10 +217,11 @@ export function FormulaSection({ form, setForm, errorFor, touch, materials, resu
                 >
                   <Box sx={{ gridArea: 'name' }}>
                     <Typography sx={{ fontWeight: 500, overflowWrap: 'anywhere' }}>{row.name}</Typography>
-                    {(row.regulatoryNote || dup) && (
+                    {(row.regulatoryNote || dup || removed) && (
                       <Stack direction="row" spacing={0.5} sx={{ mt: 0.5, flexWrap: 'wrap', gap: 0.5 }}>
                         {row.regulatoryNote && <RegulatoryBadge note={row.regulatoryNote} />}
                         {dup && <Chip size="small" color="warning" variant="outlined" label={t.formula.duplicate} />}
+                        {removed && <Chip size="small" color="error" variant="outlined" label={t.formula.removedFromList} />}
                       </Stack>
                     )}
                   </Box>

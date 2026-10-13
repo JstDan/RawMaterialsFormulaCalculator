@@ -32,8 +32,11 @@ all offers/settings are kept in the browser's localStorage. Useful for trying it
 
 Raw material names and prices are pulled one-way from the spreadsheet in **Settings → Google Sheet link**
 (default: the Nutrikal price list in Drive). It must be shared as *Anyone with the link – Viewer* and have the
-columns `Raw Material` and `Price DDP/EUR/kg` in the first sheet. New names are added and changed prices
-updated; nothing is deleted. Works for native Google Sheets and for `.xlsx` files stored in Drive.
+columns `Raw Material` and `Price DDP/EUR/kg` in the first sheet. The sheet is the source of truth: new names
+are added, changed prices updated, and materials removed from the sheet are **deactivated** (hidden from the
+calculator, never deleted, saved offers unaffected); they are reactivated if they come back. A sheet with no valid
+rows is rejected so the price list can never be wiped by accident. Works for native Google Sheets and for `.xlsx`
+files stored in Drive.
 
 - **Manual:** "Sync" button on the Raw materials page.
 - **Daily:** pg_cron calls the Edge Function at 03:00 UTC.

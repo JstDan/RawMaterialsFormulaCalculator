@@ -132,5 +132,9 @@ export interface SyncRun {
   unchanged: number;
   invalid: number;
   missing: number;
+  /** Materials deactivated because they were removed from the sheet. */
+  removed: number;
+  /** Inactive materials reactivated because they are back in the sheet. */
+  restored: number;
   error: string | null;
 }
