@@ -193,6 +193,7 @@ export const en = {
     addTitle: 'Add raw material',
     nameExists: 'A material with this name already exists',
     invalidPrice: 'Enter a price ≥ 0',
+    import: 'Import',
     importTitle: 'Import from Excel / CSV',
     importHint: 'File with columns "Raw Material" and "Price DDP/EUR/kg". Existing materials are matched by name.',
     chooseFile: 'Choose file',

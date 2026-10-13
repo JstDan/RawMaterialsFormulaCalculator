@@ -1,4 +1,14 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
+} from 'react';
 import { DEFAULT_SETTINGS, type RawMaterial, type Settings } from '../lib/types';
 import type { DataRepo } from './repo';
 import { supabase } from './supabaseClient';
@@ -14,7 +24,7 @@ interface DataState {
   loading: boolean;
   error: string | null;
   reloadMaterials(): Promise<void>;
-  setMaterials(list: RawMaterial[]): void;
+  setMaterials: Dispatch<SetStateAction<RawMaterial[]>>;
   saveSettings(s: Settings): Promise<void>;
 }
 
