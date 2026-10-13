@@ -6,7 +6,7 @@ import { formatDate, formatNumber, parseNum } from './numbers';
 import { CAPSULE_SIZES, isCapsule, type OfferForm, type ProductType, type Settings } from './types';
 
 // Client-facing offer, laid out after Nutrikal's offer template (Poppins, two brand marks, customer /
-// supplier blocks, line table with discount, payment bar, bank details, payment terms, note, footer).
+// supplier blocks, line table with discount, payment bar, bank details, payment terms, note, terms, footer).
 // It must NEVER contain raw material prices, cost per dose, fixed costs, markup, margin, profit or the
 // raw material requirement list – only the data passed in OfferPdfModel.
 
@@ -37,6 +37,8 @@ export interface OfferPdfModel {
   vatExemptionText: string | null;
   paymentTerms: string;
   noteLines: string[];
+  /** Standard offer terms (Settings). */
+  terms: string;
   footerText: string;
   websites: string[];
   /** Uploaded logo (Settings) – replaces the brand marks in the header. */
@@ -95,7 +97,7 @@ export function toPdfModel(
     amount: result.productAmount,
   };
 
-  // NOTE: packaging, composition per dose (no prices), the account manager's notes, default terms.
+  // NOTE: packaging, composition per dose (no prices) and the account manager's notes.
   const noteLines: string[] = [];
   const doseG = result.doseWeightMg / 1000;
   if (capsule) {
@@ -122,7 +124,6 @@ export function toPdfModel(
     if (parts.length) noteLines.push(`${label}: ${parts.join(' | ')}`);
   }
   noteLines.push(...form.notes.split('\n').map((l) => l.trim()).filter(Boolean));
-  if (settings.terms_text.trim()) noteLines.push(settings.terms_text.trim());
 
   const r = form.receiver;
   const inv = form.invoice;
@@ -156,6 +157,7 @@ export function toPdfModel(
     vatExemptionText: form.addVat ? null : settings.vat_exemption_text.trim() || null,
     paymentTerms: form.paymentTerms.trim(),
     noteLines,
+    terms: settings.terms_text.trim(),
     footerText: settings.footer_text,
     websites: settings.websites
       .split(',')
@@ -365,7 +367,7 @@ export function createOfferPdf(m: OfferPdfModel, fonts: PdfFonts): jsPDF {
   }
   y += 7;
 
-  // 6. Payment terms + note
+  // 6. Payment terms, note, standard terms
   const block = (title: string, lines: string[]) => {
     if (!lines.length) return;
     ensureSpace(14);
@@ -384,6 +386,7 @@ export function createOfferPdf(m: OfferPdfModel, fonts: PdfFonts): jsPDF {
   };
   block(t.pdf.paymentTerms, m.paymentTerms ? [m.paymentTerms] : []);
   block(t.pdf.note, m.noteLines);
+  block(t.pdf.terms, m.terms ? [m.terms] : []);
 
   // 7. Footer on every page
   const pages = doc.getNumberOfPages();

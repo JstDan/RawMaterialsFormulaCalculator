@@ -90,6 +90,9 @@ describe('offer PDF (Nutrikal template)', () => {
     });
     expect(model.supplier.name).toBe('Nutrikal Ltd');
     expect(model.paymentTerms).toBe('100% advance payment');
+    expect(model.terms).toBe(DEFAULT_SETTINGS.terms_text);
+    expect(model.terms.startsWith('The prices are EUR/EXW excl. VAT')).toBe(true);
+    expect(model.noteLines.join(' ')).not.toContain('EUR/EXW');
     expect(model.noteLines).toEqual([
       'Plastic bottles, 30 capsules each, capsule size 00.',
       'Per capsule: Citicoline 250 mg | L-Theanine (from Green Tea) 200 mg | Rhodiola Rosa Extract 3% rosavine 1% salidrose 200 mg',

@@ -304,6 +304,7 @@ export const en = {
     bankAddress: 'Bank Address',
     paymentTerms: 'PAYMENT TERMS:',
     note: 'NOTE:',
+    terms: 'TERMS:',
     page: 'Page {n} of {m}',
   },
 };
