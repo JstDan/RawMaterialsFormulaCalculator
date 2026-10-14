@@ -71,7 +71,7 @@ export const DEFAULT_SETTINGS: Settings = {
   bank_name: 'First Investment Bank AD',
   bank_bic: 'FINVBGSF',
   bank_address: '37 Dragan Tsankov Blvd, 1797 Sofia, Bulgaria',
-  default_payment_terms: '100% advance payment',
+  default_payment_terms: '50% Down Payment and 50% Balance Payment when goods are ready to be shipped',
   vat_exemption_text: 'VAT Exemption',
   footer_text: 'Thank you for your business!',
   websites: 'Nutrikal.com, MadeByNatureLabs.com',
