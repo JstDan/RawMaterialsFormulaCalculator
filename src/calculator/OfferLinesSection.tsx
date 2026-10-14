@@ -29,7 +29,6 @@ interface Props extends SectionProps {
 /** Step 7: extra offer lines (certificates, design…), payment terms and the PDF note. */
 export function OfferLinesSection({ form, setForm, errorFor, presets }: Props) {
   const error = errorFor('extraItems');
-  const discount = Math.min(100, Math.max(0, parseNum(form.discount) ?? 0));
 
   const addItem = (item: Omit<ExtraItem, 'key'>) =>
     setForm((f) => ({ ...f, extraItems: [...f.extraItems, { key: crypto.randomUUID(), ...item }] }));
@@ -70,7 +69,7 @@ export function OfferLinesSection({ form, setForm, errorFor, presets }: Props) {
             {form.extraItems.map((item) => {
               const qty = parseNum(item.qty);
               const price = parseNum(item.price);
-              const amount = qty && price !== null ? qty * price * (1 - discount / 100) : 0;
+              const amount = qty && price !== null ? qty * price : 0;
               const missingDescription = !item.description.trim();
               return (
                 <Paper

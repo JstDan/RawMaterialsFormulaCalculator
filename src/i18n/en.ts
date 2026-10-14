@@ -126,7 +126,7 @@ export const en = {
     notesHint: 'Printed on the PDF offer.',
     includeComposition: 'Include composition in the PDF note',
     discount: 'Discount %',
-    discountHint: 'Applied to every offer line',
+    discountHint: 'Applied to the product price only',
   },
   lines: {
     section: 'Extra lines & terms',

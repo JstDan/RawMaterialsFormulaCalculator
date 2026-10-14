@@ -141,7 +141,7 @@ export interface OfferForm {
   markup: string;
   addVat: boolean;
   vatRate: string;
-  /** Discount % applied to every offer line. */
+  /** Discount % applied to the product line only. */
   discount: string;
   extraItems: ExtraItem[];
   paymentTerms: string;

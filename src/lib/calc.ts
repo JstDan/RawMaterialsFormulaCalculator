@@ -24,7 +24,7 @@ export interface CalcInput {
   markupPct: number | null;
   addVat: boolean;
   vatRatePct: number | null;
-  /** Discount % applied to every offer line (product and extra items). */
+  /** Discount % applied to the product line only (extra items are never discounted). */
   discountPct: number | null;
   extraItems: ExtraItemInput[];
   fixedCosts: FixedCosts;
@@ -68,10 +68,10 @@ export interface CalcResult {
   unitPrice: number;
   /** Product line after discount (unit price × units − discount). */
   productAmount: number;
-  /** Extra lines after discount (only complete rows). */
+  /** Extra lines at full price (only complete rows). */
   extraLines: OfferLine[];
   extrasTotal: number;
-  /** Total discount given across all lines. */
+  /** Discount given on the product line. */
   discountAmount: number;
   totalCost: number;
   /** Sub total of all lines, excl. VAT. */
@@ -130,26 +130,24 @@ export function calculate(input: CalcInput): CalcResult {
   const profit = productAmount.sub(totalCost);
   const marginPct = productAmount.gt(0) ? profit.div(productAmount).mul(100) : ZERO;
 
-  // Extra lines: only rows with a description, a positive quantity and a price.
+  // Extra lines: only rows with a description, a positive quantity and a price. Never discounted.
   const extraLines: OfferLine[] = [];
-  let extrasGross = ZERO;
   for (const item of input.extraItems) {
     if (!item.description.trim() || !item.qty || item.qty <= 0 || item.price === null || item.price < 0) continue;
     const gross = new Decimal(item.price).mul(item.qty);
-    extrasGross = extrasGross.add(gross);
     extraLines.push({
       description: item.description.trim(),
       qty: item.qty,
       unit: item.unit,
       price: item.price,
-      discountPct: discount.toNumber(),
-      amount: round2(gross.mul(keep)).toNumber(),
+      discountPct: 0,
+      amount: round2(gross).toNumber(),
     });
   }
   const extrasTotal = extraLines.reduce((a, l) => a.add(l.amount), ZERO);
 
   const subtotal = productAmount.add(extrasTotal);
-  const discountAmount = productGross.add(extrasGross).sub(subtotal);
+  const discountAmount = productGross.sub(productAmount);
   const vatAmount = input.addVat ? round2(subtotal.mul(new Decimal(input.vatRatePct ?? 0).div(100))) : ZERO;
 
   const orderDoses = dosesPerUnit && units ? dosesPerUnit.mul(units) : ZERO;

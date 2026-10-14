@@ -95,7 +95,7 @@ describe('calculate', () => {
 
 describe('offer lines (template)', () => {
   it('reproduces the Nutrikal offer template totals', () => {
-    // Unit price 5.93, 1000 pcs, 5 % discount + three services → sub total 6317.50 EUR
+    // Unit price 5.93, 1000 pcs, 5 % discount on the product only + three services → sub total 6353.50 EUR
     const r = calculate({
       ...base,
       productType: 'capsules_plastic',
@@ -115,11 +115,11 @@ describe('offer lines (template)', () => {
     });
     expect(r.unitPrice).toBe(5.93);
     expect(r.productAmount).toBe(5633.5);
-    expect(r.extraLines.map((l) => l.amount)).toEqual([285, 209, 190]);
-    expect(r.extrasTotal).toBe(684);
-    expect(r.totalPriceExclVat).toBe(6317.5);
-    expect(r.discountAmount).toBe(332.5);
-    expect(r.totalInclVat).toBe(6317.5);
+    expect(r.extraLines.map((l) => l.amount)).toEqual([300, 220, 200]);
+    expect(r.extrasTotal).toBe(720);
+    expect(r.totalPriceExclVat).toBe(6353.5);
+    expect(r.discountAmount).toBe(296.5);
+    expect(r.totalInclVat).toBe(6353.5);
     // Profit only covers the product line after discount
     expect(r.profit).toBeCloseTo(5633.5 - 5930, 8);
   });

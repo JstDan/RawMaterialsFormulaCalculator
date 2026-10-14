@@ -73,11 +73,11 @@ describe('offer PDF (Nutrikal template)', () => {
   it('builds the template lines, totals and note', () => {
     expect(model.lines.map((l) => [l.description, l.qty, l.unit, l.discountPct])).toEqual([
       ['Custom formula - 30 capsules with plastic bottles', 1000, 'pcs', 5],
-      ['Free Sale Certificate', 1, 'pcs.', 5],
-      ['Certificate of analysis', 1, 'pcs.', 5],
-      ['Label design service', 1, 'pcs.', 5],
+      ['Free Sale Certificate', 1, 'pcs.', 0],
+      ['Certificate of analysis', 1, 'pcs.', 0],
+      ['Label design service', 1, 'pcs.', 0],
     ]);
-    expect(model.lines.slice(1).map((l) => l.amount)).toEqual([285, 209, 190]);
+    expect(model.lines.slice(1).map((l) => l.amount)).toEqual([300, 220, 200]);
     expect(model.subtotal).toBe(result.totalPriceExclVat);
     expect(model.vatAmount).toBe(0);
     expect(model.vatExemptionText).toBe('VAT Exemption');
