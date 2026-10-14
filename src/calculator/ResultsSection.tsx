@@ -45,7 +45,12 @@ export function ResultsSection({ form, result, valid, busy, onSave, onDownloadPd
       )}
       <Stack spacing={3}>
         {/* A) Internal breakdown – never goes to the PDF */}
-        <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 }, bgcolor: '#fffaf0', borderColor: '#f0d9a8' }}>
+        <Paper variant="outlined" sx={(theme) => ({
+            p: { xs: 1.5, sm: 2 },
+            bgcolor: theme.palette.mode === 'dark' ? 'rgba(240, 217, 168, 0.06)' : '#fffaf0',
+            borderColor: theme.palette.mode === 'dark' ? 'rgba(240, 217, 168, 0.3)' : '#f0d9a8',
+          })}
+        >
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
             <Typography variant="h3" component="h3">
               A) {t.results.internalTitle}

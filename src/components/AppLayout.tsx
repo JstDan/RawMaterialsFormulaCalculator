@@ -11,7 +11,9 @@ import {
   ListItemText,
   Menu,
   MenuItem,
+  Switch,
   Toolbar,
+  Tooltip,
   Typography,
   useMediaQuery,
   useTheme,
@@ -21,6 +23,8 @@ import FolderOpenIcon from '@mui/icons-material/FolderOpenOutlined';
 import ScienceIcon from '@mui/icons-material/ScienceOutlined';
 import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from '@mui/icons-material/Menu';
+import DarkModeIcon from '@mui/icons-material/DarkModeOutlined';
+import { useColorMode } from '../theme';
 import { t } from '../i18n';
 
 interface Props {
@@ -34,6 +38,7 @@ export function AppLayout({ children, onNewOffer, onLogout, badge }: Props) {
   const theme = useTheme();
   const compact = useMediaQuery(theme.breakpoints.down('md'));
   const location = useLocation();
+  const { mode, toggle } = useColorMode();
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
 
   const navLinks = [
@@ -55,6 +60,17 @@ export function AppLayout({ children, onNewOffer, onLogout, badge }: Props) {
             {compact ? 'Nutrikal' : t.appName}
           </Typography>
           {badge}
+          <Tooltip title={t.nav.darkMode}>
+            <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+              <DarkModeIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+              <Switch
+                size="small"
+                checked={mode === 'dark'}
+                onChange={toggle}
+                slotProps={{ input: { 'aria-label': t.nav.darkMode } }}
+              />
+            </Box>
+          </Tooltip>
           <Button variant="contained" startIcon={<AddIcon />} onClick={onNewOffer} sx={{ flexShrink: 0 }}>
             {t.nav.newOffer}
           </Button>

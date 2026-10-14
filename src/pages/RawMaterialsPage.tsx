@@ -41,7 +41,7 @@ function NoteCell({ material, onSave }: { material: RawMaterial; onSave: (note: 
       multiline
       maxRows={4}
       placeholder="–"
-      sx={value ? { '& textarea': { color: '#8a5a00' } } : undefined}
+      sx={value ? (theme) => ({ '& textarea': { color: theme.palette.mode === 'dark' ? '#f5c46b' : '#8a5a00' } }) : undefined}
       slotProps={{ htmlInput: { 'aria-label': `${t.materials.note} – ${material.name}` } }}
     />
   );

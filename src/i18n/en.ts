@@ -8,6 +8,7 @@ export const en = {
     calculator: 'Calculator',
     logout: 'Log out',
     menu: 'Menu',
+    darkMode: 'Dark mode',
     demoMode: 'Local demo mode',
     demoModeHint: 'Supabase is not configured – data is stored in this browser only.',
   },

@@ -38,7 +38,12 @@ export function RegulatoryBadge({ note }: { note: string }) {
         label={t.formula.regulatory}
         tabIndex={0}
         aria-label={`${t.formula.regulatory}: ${note}`}
-        sx={{ bgcolor: '#fff4e0', color: '#8a5a00', '& .MuiChip-icon': { color: '#d48806' }, cursor: 'help' }}
+        sx={(theme) => ({
+          bgcolor: theme.palette.mode === 'dark' ? 'rgba(212, 136, 6, 0.18)' : '#fff4e0',
+          color: theme.palette.mode === 'dark' ? '#f5c46b' : '#8a5a00',
+          '& .MuiChip-icon': { color: '#d48806' },
+          cursor: 'help',
+        })}
       />
     </Tooltip>
   );
