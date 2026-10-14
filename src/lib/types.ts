@@ -73,7 +73,7 @@ export const DEFAULT_SETTINGS: Settings = {
   bank_address: '37 Dragan Tsankov Blvd, 1797 Sofia, Bulgaria',
   default_payment_terms: '50% Down Payment and 50% Balance Payment when goods are ready to be shipped',
   vat_exemption_text: 'VAT Exemption',
-  footer_text: 'Thank you for your business!',
+  footer_text: '',
   websites: 'Nutrikal.com, MadeByNatureLabs.com',
   service_presets: [
     { description: 'Free Sale Certificate', unit: 'pcs.', price: 300 },

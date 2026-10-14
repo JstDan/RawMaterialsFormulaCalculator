@@ -395,7 +395,7 @@ export function createOfferPdf(m: OfferPdfModel, fonts: PdfFonts): jsPDF {
     doc.setDrawColor(...TEXT);
     doc.setLineWidth(0.4);
     doc.line(5, pageH - 10, pageW - 5, pageH - 10);
-    write(m.footerText, 5, pageH - 4.5, { size: 8.5 });
+    if (m.footerText.trim()) write(m.footerText, 5, pageH - 4.5, { size: 8.5 });
     // Websites from the right, each with its brand mark when the built-in marks are used.
     let x = pageW - 5;
     [...m.websites].reverse().forEach((site, idx) => {
