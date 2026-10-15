@@ -6,7 +6,8 @@ import { formatDate, formatNumber, parseNum } from './numbers';
 import { CAPSULE_SIZES, isCapsule, type OfferForm, type ProductType, type Settings } from './types';
 
 // Client-facing offer, laid out after Nutrikal's offer template (Poppins, two brand marks, customer /
-// supplier blocks, line table with discount, payment bar, bank details, payment terms, note, terms, footer).
+// supplier blocks, line table with discount, payment bar, bank details, payment terms, amount per dose table,
+// terms, footer).
 // It must NEVER contain raw material prices, cost per dose, fixed costs, markup, margin, profit or the
 // raw material requirement list – only the data passed in OfferPdfModel.
 
@@ -36,6 +37,11 @@ export interface OfferPdfModel {
   /** Shown next to the bank details when no VAT is charged. */
   vatExemptionText: string | null;
   paymentTerms: string;
+  /** Size of one dose, shown in the table title, e.g. "1 capsule" or "5.00 g". */
+  dosePortion: string;
+  /** Ingredients contained in one dose (no prices). Empty when the composition is switched off. */
+  doseRows: { name: string; amount: string }[];
+  /** Packaging and the account manager's notes, printed under the amount per dose table. */
   noteLines: string[];
   /** Standard offer terms (Settings). */
   terms: string;
@@ -97,7 +103,7 @@ export function toPdfModel(
     amount: result.productAmount,
   };
 
-  // NOTE: packaging, composition per dose (no prices) and the account manager's notes.
+  // Amount per dose table (no prices), then packaging and the account manager's notes.
   const noteLines: string[] = [];
   const doseG = result.doseWeightMg / 1000;
   if (capsule) {
@@ -111,18 +117,13 @@ export function toPdfModel(
       `Doypack pouches, ${perUnit} doses of ${formatNumber(doseG, 2)} g each${net ? ` (net ${formatNumber(net, 0)} g)` : ''}.`,
     );
   }
-  if (form.includeComposition) {
-    const parts = form.rows
-      .filter((r) => (parseNum(r.amount) ?? 0) > 0)
-      .map((r) => `${r.name} ${formatNumber(parseNum(r.amount) ?? 0, 4)} ${r.unit}`);
-    const caps = parseNum(form.capsulesPerDose) ?? 1;
-    const label = capsule
-      ? caps === 1
-        ? 'Per capsule'
-        : `Per dose (${caps} capsules)`
-      : `Per dose (${formatNumber(doseG, 2)} g)`;
-    if (parts.length) noteLines.push(`${label}: ${parts.join(' | ')}`);
-  }
+  const caps = parseNum(form.capsulesPerDose) ?? 1;
+  const dosePortion = capsule ? `${caps} ${caps === 1 ? 'capsule' : 'capsules'}` : `${formatNumber(doseG, 2)} g`;
+  const doseRows = form.includeComposition
+    ? form.rows
+        .filter((r) => (parseNum(r.amount) ?? 0) > 0)
+        .map((r) => ({ name: r.name, amount: `${formatNumber(parseNum(r.amount) ?? 0, 4)} ${r.unit}` }))
+    : [];
   noteLines.push(...form.notes.split('\n').map((l) => l.trim()).filter(Boolean));
 
   const r = form.receiver;
@@ -156,6 +157,8 @@ export function toPdfModel(
     bank: { iban: settings.bank_iban, name: settings.bank_name, bic: settings.bank_bic, address: settings.bank_address },
     vatExemptionText: form.addVat ? null : settings.vat_exemption_text.trim() || null,
     paymentTerms: form.paymentTerms.trim(),
+    dosePortion,
+    doseRows,
     noteLines,
     terms: settings.terms_text.trim(),
     footerText: settings.footer_text,
@@ -367,12 +370,8 @@ export function createOfferPdf(m: OfferPdfModel, fonts: PdfFonts): jsPDF {
   }
   y += 7;
 
-  // 6. Payment terms, note, standard terms
-  const block = (title: string, lines: string[]) => {
-    if (!lines.length) return;
-    ensureSpace(14);
-    write(title, L, y, { weight: 'bold', size: 8 });
-    y += 6.5;
+  // 6. Payment terms, amount per dose, standard terms
+  const textLines = (lines: string[]) => {
     doc.setFontSize(9);
     for (const line of lines) {
       doc.setFont(...fontFor('regular', line));
@@ -382,10 +381,57 @@ export function createOfferPdf(m: OfferPdfModel, fonts: PdfFonts): jsPDF {
         y += 5.2;
       }
     }
+  };
+  const block = (title: string, lines: string[]) => {
+    if (!lines.length) return;
+    ensureSpace(14);
+    write(title, L, y, { weight: 'bold', size: 8 });
+    y += 6.5;
+    textLines(lines);
     y += 4;
   };
   block(t.pdf.paymentTerms, m.paymentTerms ? [m.paymentTerms] : []);
-  block(t.pdf.note, m.noteLines);
+
+  if (m.doseRows.length) {
+    ensureSpace(24);
+    write(fmt(t.pdf.amountPerDose, { portion: m.dosePortion.toUpperCase() }), L, y, { weight: 'bold', size: 8 });
+    y += 2.5;
+    autoTable(doc, {
+      startY: y,
+      margin: { left: L, right: pageW - R, top: 15, bottom: 20 },
+      theme: 'plain',
+      head: [[t.pdf.ingredient, t.pdf.amountPerDoseColumn]],
+      body: m.doseRows.map((r) => [r.name, r.amount]),
+      styles: { font: 'Poppins', fontSize: 8.5, textColor: TEXT, cellPadding: { top: 1.2, bottom: 1.2, left: 1, right: 1 }, overflow: 'linebreak' },
+      headStyles: { font: 'Poppins', fontStyle: 'bold', fontSize: 8, fillColor: HEAD_BG, textColor: NAVY },
+      columnStyles: { 0: { cellWidth: 'auto' }, 1: { cellWidth: 40, halign: 'right' } },
+      didParseCell: (data) => {
+        const text = data.cell.text.join(' ');
+        if (data.section === 'head') {
+          data.cell.text = data.cell.text.map((s) => s.toUpperCase());
+          if (data.column.index === 1) data.cell.styles.halign = 'right';
+        } else if (CYRILLIC.test(text)) {
+          Object.assign(data.cell.styles, cellFont(text, 'regular'));
+        }
+      },
+      didDrawCell: (data) => {
+        if (data.section !== 'body') return;
+        doc.setDrawColor(...LINE);
+        doc.setLineWidth(0.25);
+        doc.line(data.cell.x, data.cell.y + data.cell.height, data.cell.x + data.cell.width, data.cell.y + data.cell.height);
+      },
+    });
+    y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
+  }
+  // Packaging and notes: under the table, or with their own heading when the table is switched off.
+  if (m.doseRows.length) {
+    if (m.noteLines.length) {
+      textLines(m.noteLines);
+      y += 4;
+    }
+  } else {
+    block(t.pdf.note, m.noteLines);
+  }
   block(t.pdf.terms, m.terms ? [m.terms] : []);
 
   // 7. Footer on every page

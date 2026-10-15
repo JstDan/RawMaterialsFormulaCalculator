@@ -93,11 +93,15 @@ describe('offer PDF (Nutrikal template)', () => {
     expect(model.terms).toBe(DEFAULT_SETTINGS.terms_text);
     expect(model.terms.startsWith('The prices are EUR/EXW excl. VAT')).toBe(true);
     expect(model.noteLines.join(' ')).not.toContain('EUR/EXW');
-    expect(model.noteLines).toEqual([
-      'Plastic bottles, 30 capsules each, capsule size 00.',
-      'Per capsule: Citicoline 250 mg | L-Theanine (from Green Tea) 200 mg | Rhodiola Rosa Extract 3% rosavine 1% salidrose 200 mg',
+    expect(model.noteLines).toEqual(['Plastic bottles, 30 capsules each, capsule size 00.']);
+    expect(model.dosePortion).toBe('1 capsule');
+    expect(model.doseRows).toEqual([
+      { name: 'Citicoline', amount: '250 mg' },
+      { name: 'L-Theanine (from Green Tea)', amount: '200 mg' },
+      { name: 'Rhodiola Rosa Extract 3% rosavine 1% salidrose', amount: '200 mg' },
     ]);
     const noComposition = toPdfModel({ ...sampleForm, includeComposition: false }, result, DEFAULT_SETTINGS, images);
+    expect(noComposition.doseRows).toEqual([]);
     expect(noComposition.noteLines).toHaveLength(1);
     const withVat = { ...sampleForm, addVat: true };
     const vatModel = toPdfModel(withVat, calculate(calcInputFromForm(withVat, DEFAULT_SETTINGS.fixed_costs)), DEFAULT_SETTINGS, images);
@@ -107,7 +111,8 @@ describe('offer PDF (Nutrikal template)', () => {
 
   it('renders an A4 PDF with Poppins and a Cyrillic fallback font', () => {
     const doc = createOfferPdf(model, fonts);
-    expect(doc.getNumberOfPages()).toBe(1);
+    // The amount per dose table can push the standard terms onto a second page.
+    expect(doc.getNumberOfPages()).toBeLessThanOrEqual(2);
     doc.setFont('Roboto', 'normal');
     const notdef = doc.getTextWidth('');
     expect(doc.getTextWidth('Ж')).not.toBe(notdef);
