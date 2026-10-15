@@ -68,26 +68,3 @@ export function QuantitySection({ form, setForm, errorFor, touch, result }: Sect
     </Section>
   );
 }
-
-export function UnitsSection({ form, setForm, errorFor, touch }: SectionProps) {
-  const error = errorFor('numberOfUnits');
-  return (
-    <Section step={5} title={t.units.section}>
-      <Grid container spacing={2}>
-        <Grid size={{ xs: 12, sm: 6 }}>
-          <NumberField
-            id={fieldId('numberOfUnits')}
-            integer
-            required
-            label={unitsLabel(form.productType)}
-            value={form.numberOfUnits}
-            onChange={(v) => setForm((f) => ({ ...f, numberOfUnits: v }))}
-            onBlur={() => touch('numberOfUnits')}
-            error={!!error}
-            helperText={error}
-          />
-        </Grid>
-      </Grid>
-    </Section>
-  );
-}

@@ -25,6 +25,7 @@ export function createEmptyForm(settings: Settings, offerNo: string): OfferForm 
     vatRate: String(settings.default_vat_rate),
     discount: '0',
     extraItems: [],
+    priceTiers: [],
     paymentTerms: settings.default_payment_terms,
     includeComposition: true,
     notes: '',
@@ -42,6 +43,7 @@ export function normalizeForm(f: OfferForm, settings: Settings): OfferForm {
     invoice: { ...empty.invoice, ...f.invoice },
     offer: { ...empty.offer, ...f.offer },
     extraItems: f.extraItems ?? [],
+    priceTiers: f.priceTiers ?? [],
     discount: f.discount ?? '0',
     paymentTerms: f.paymentTerms ?? settings.default_payment_terms,
   };

@@ -95,6 +95,14 @@ export interface ExtraItem {
   price: string;
 }
 
+/** Alternative price for a specific order quantity (e.g. 1000 pcs for 4500 EUR in total). Numbers as typed. */
+export interface PriceTier {
+  key: string;
+  qty: string;
+  /** Total price for the whole quantity (pcs × price per unit). */
+  total: string;
+}
+
 /** One ingredient line of the formula. Price and note are a snapshot taken when the row was added. */
 export interface FormulaRow {
   key: string;
@@ -144,6 +152,8 @@ export interface OfferForm {
   /** Discount % applied to the product line only. */
   discount: string;
   extraItems: ExtraItem[];
+  /** Price per unit for other order quantities. */
+  priceTiers: PriceTier[];
   paymentTerms: string;
   includeComposition: boolean;
   notes: string;

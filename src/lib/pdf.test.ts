@@ -53,6 +53,7 @@ const sampleForm: OfferForm = {
     { key: 'x2', description: 'Certificate of analysis', qty: '1', unit: 'pcs.', price: '220' },
     { key: 'x3', description: 'Label design service', qty: '1', unit: 'pcs.', price: '200' },
   ],
+  priceTiers: [],
   paymentTerms: '100% advance payment',
   includeComposition: true,
   notes: '',

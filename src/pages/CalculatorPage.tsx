@@ -5,7 +5,7 @@ import { FormulaSection } from '../calculator/FormulaSection';
 import { MarkupSection } from '../calculator/MarkupSection';
 import { OfferLinesSection } from '../calculator/OfferLinesSection';
 import { ProductTypeSection } from '../calculator/ProductTypeSection';
-import { QuantitySection, UnitsSection } from '../calculator/QuantitySections';
+import { QuantitySection } from '../calculator/QuantitySections';
 import { ResultsSection } from '../calculator/ResultsSection';
 import type { SectionProps } from '../calculator/sectionProps';
 import { useData } from '../data/DataContext';
@@ -105,8 +105,7 @@ export function CalculatorPage() {
       <ProductTypeSection {...sectionProps} fixedCosts={fixedCosts} />
       <FormulaSection {...sectionProps} materials={materials} result={result} />
       <QuantitySection {...sectionProps} result={result} />
-      <UnitsSection {...sectionProps} />
-      <MarkupSection {...sectionProps} />
+      <MarkupSection {...sectionProps} result={result} />
       <OfferLinesSection {...sectionProps} presets={settings.service_presets} />
       <ResultsSection
         form={form}

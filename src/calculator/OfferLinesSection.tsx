@@ -37,7 +37,7 @@ export function OfferLinesSection({ form, setForm, errorFor, presets }: Props) {
   const removeItem = (key: string) => setForm((f) => ({ ...f, extraItems: f.extraItems.filter((x) => x.key !== key) }));
 
   return (
-    <Section step={7} title={t.lines.section} id={fieldId('extraItems')}>
+    <Section step={6} title={t.lines.section} id={fieldId('extraItems')}>
       <Stack spacing={2.5}>
         <div>
           <SubHeading>{t.lines.extraItems}</SubHeading>
