@@ -415,10 +415,10 @@ export function createOfferPdf(m: OfferPdfModel, fonts: PdfFonts): jsPDF {
       theme: 'plain',
       body: [
         [t.pdf.units, ...m.salesPrices.map((p) => formatNumber(p.units, 0))],
-        [t.pdf.pricePerUnit, ...m.salesPrices.map((p) => `${money(p.price)} EUR`)],
+        [t.pdf.pricePerUnit, ...m.salesPrices.map((p) => `€${money(p.price)}`)],
       ],
       styles: { font: 'Poppins', fontSize: 9, textColor: TEXT, cellPadding: { top: 2, bottom: 2, left: 1.5, right: 1.5 }, halign: 'right' },
-      columnStyles: { 0: { halign: 'left', fontStyle: 'bold', fillColor: HEAD_BG, textColor: NAVY, cellWidth: 32 } },
+      columnStyles: { 0: { halign: 'left', fontStyle: 'bold', fillColor: HEAD_BG, textColor: NAVY, cellWidth: 38 } },
       didDrawCell: (data) => {
         doc.setDrawColor(...LINE);
         doc.setLineWidth(0.25);

@@ -74,7 +74,7 @@ export const DEFAULT_SETTINGS: Settings = {
   default_payment_terms: '70% Down Payment and 30% Balance Payment when goods are ready to be shipped',
   vat_exemption_text: 'VAT Exemption',
   footer_text: '',
-  websites: 'Nutrikal.com, MadeByNatureLabs.com',
+  websites: 'Nutrikal.com',
   service_presets: [
     { description: 'Free Sale Certificate', unit: 'pcs.', price: 300 },
     { description: 'Certificate of analysis', unit: 'pcs.', price: 220 },

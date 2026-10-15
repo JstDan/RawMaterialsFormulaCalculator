@@ -265,7 +265,7 @@ export const en = {
     companyPhone: 'Phone',
     logo: 'Logo',
     uploadLogo: 'Upload logo (PNG/JPEG)',
-    logoHint: 'An uploaded logo replaces the Nutrikal and MadeByNatureLabs marks on the PDF offer.',
+    logoHint: 'An uploaded logo replaces the Nutrikal logo on the PDF offer.',
     removeLogo: 'Remove logo',
     logoTooLarge: 'Logo must be smaller than 500 KB',
     terms: 'Disclaimer text (PDF)',
@@ -323,7 +323,7 @@ export const en = {
     pricesExclVat: 'All prices are excl. VAT.',
     salesPrices: 'SALES PRICES:',
     units: 'Units',
-    pricePerUnit: 'Price per unit',
+    pricePerUnit: 'Price/Unit (EUR)',
     page: 'Page {n} of {m}',
   },
 };
