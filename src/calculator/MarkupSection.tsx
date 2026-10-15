@@ -1,35 +1,33 @@
-import { Box, Button, Grid, IconButton, Paper, Slider, Stack, Tooltip, Typography } from '@mui/material';
+import { Box, Button, Grid, IconButton, Paper, Stack, Tooltip, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import { NumberField } from '../components/NumberField';
 import { Section, SubHeading } from '../components/Section';
-import { marginFromMarkup, type CalcResult } from '../lib/calc';
-import { formatEur, formatNumber, formatPct, parseNum } from '../lib/numbers';
+import { marginFromMarkup, unitPriceFor, type CalcResult } from '../lib/calc';
+import { formatEur, formatPct, parseNum } from '../lib/numbers';
 import type { PriceTier } from '../lib/types';
 import { fieldId } from '../lib/validation';
 import { fmt, t } from '../i18n';
 import { unitsLabel } from './QuantitySections';
 import type { SectionProps } from './sectionProps';
 
-/** Step 5: number of units, markup, discount and optional price tiers for other quantities. Prices are excl. VAT. */
+/** Step 6: number of units, markup, discount and optional price tiers for other quantities. Prices are excl. VAT. */
 export function MarkupSection({ form, setForm, errorFor, touch, result }: SectionProps & { result: CalcResult }) {
   const markup = parseNum(form.markup) ?? 0;
   const discount = parseNum(form.discount);
   const discountInvalid = form.discount.trim() !== '' && (discount === null || discount < 0 || discount > 100);
   const unitsError = errorFor('numberOfUnits');
-
-  // Guideline price per unit from the current cost and markup (the same rounding as the offer).
   const unitCost = result.unitCost;
-  const guidePrice = form.productType && unitCost > 0 ? Math.round(unitCost * (1 + markup / 100) * 100) / 100 : null;
+  const costKnown = !!form.productType && unitCost > 0;
 
   const addTier = () =>
-    setForm((f) => ({ ...f, priceTiers: [...f.priceTiers, { key: crypto.randomUUID(), qty: '', total: '' }] }));
+    setForm((f) => ({ ...f, priceTiers: [...f.priceTiers, { key: crypto.randomUUID(), qty: '', markup: '' }] }));
   const updateTier = (key: string, patch: Partial<PriceTier>) =>
     setForm((f) => ({ ...f, priceTiers: f.priceTiers.map((x) => (x.key === key ? { ...x, ...patch } : x)) }));
   const removeTier = (key: string) => setForm((f) => ({ ...f, priceTiers: f.priceTiers.filter((x) => x.key !== key) }));
 
   return (
-    <Section step={5} title={t.markup.section}>
+    <Section step={6} title={t.markup.section}>
       <Stack spacing={2.5}>
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, sm: 6 }}>
@@ -47,7 +45,7 @@ export function MarkupSection({ form, setForm, errorFor, touch, result }: Sectio
           </Grid>
         </Grid>
 
-        <Grid container spacing={2} sx={{ alignItems: 'center' }}>
+        <Grid container spacing={2}>
           <Grid size={{ xs: 12, sm: 4 }}>
             <NumberField
               label={t.markup.markup}
@@ -55,19 +53,6 @@ export function MarkupSection({ form, setForm, errorFor, touch, result }: Sectio
               onChange={(v) => setForm((f) => ({ ...f, markup: v }))}
               suffix="%"
             />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 8 }}>
-            <Box sx={{ px: 1 }}>
-              <Slider
-                aria-label={t.markup.markup}
-                value={Math.min(300, Math.max(0, markup))}
-                min={0}
-                max={300}
-                step={1}
-                marks={[0, 100, 200, 300].map((v) => ({ value: v, label: `${v}%` }))}
-                onChange={(_, v) => setForm((f) => ({ ...f, markup: String(v) }))}
-              />
-            </Box>
           </Grid>
         </Grid>
         <Box>
@@ -102,12 +87,8 @@ export function MarkupSection({ form, setForm, errorFor, touch, result }: Sectio
               </Typography>
               <Stack spacing={1} sx={{ mb: 1.5 }}>
                 {form.priceTiers.map((tier) => {
-                  const qty = parseNum(tier.qty);
-                  const total = parseNum(tier.total);
-                  // Price per unit follows from the total the user enters.
-                  const perUnit = total !== null && qty ? total / qty : null;
-                  const margin = perUnit && perUnit > 0 ? ((perUnit - unitCost) / perUnit) * 100 : null;
-                  const guideTotal = guidePrice !== null && qty ? guidePrice * qty : null;
+                  const tierMarkup = parseNum(tier.markup);
+                  const price = costKnown && tierMarkup !== null ? unitPriceFor(unitCost, tierMarkup) : null;
                   return (
                     <Paper key={tier.key} variant="outlined" sx={{ p: 1.5 }}>
                       <Grid container spacing={1.5} sx={{ alignItems: 'center' }}>
@@ -124,12 +105,10 @@ export function MarkupSection({ form, setForm, errorFor, touch, result }: Sectio
                         <Grid size={{ xs: 5, sm: 3 }}>
                           <NumberField
                             size="small"
-                            calculator
-                            label={t.markup.tierTotal}
-                            value={tier.total}
-                            onChange={(v) => updateTier(tier.key, { total: v })}
-                            placeholder={guideTotal !== null ? guideTotal.toFixed(2) : undefined}
-                            suffix="€"
+                            label={t.markup.markup}
+                            value={tier.markup}
+                            onChange={(v) => updateTier(tier.key, { markup: v })}
+                            suffix="%"
                           />
                         </Grid>
                         <Grid size={{ xs: 2, sm: 1 }} sx={{ order: { sm: 3 }, textAlign: 'right' }}>
@@ -140,30 +119,20 @@ export function MarkupSection({ form, setForm, errorFor, touch, result }: Sectio
                           </Tooltip>
                         </Grid>
                         <Grid size={{ xs: 12, sm: 5 }}>
-                          {guidePrice === null ? (
+                          {!costKnown ? (
                             <Typography variant="caption" color="text.secondary">
                               {t.markup.tierNeedsFormula}
                             </Typography>
-                          ) : (
+                          ) : price !== null && tierMarkup !== null ? (
                             <>
                               <Typography variant="caption" color="text.secondary" component="div">
-                                {fmt(t.markup.tierGuide, {
-                                  total: formatEur(guideTotal ?? 0),
-                                  qty: formatNumber(qty ?? 0, 0),
-                                  price: formatEur(guidePrice),
-                                })}
+                                {fmt(t.markup.tierPrice, { price: formatEur(price) })}
                               </Typography>
-                              {perUnit !== null && margin !== null && (
-                                <Typography
-                                  variant="caption"
-                                  component="div"
-                                  sx={{ color: margin < 0 ? 'error.main' : 'text.secondary' }}
-                                >
-                                  {fmt(t.markup.tierAtPrice, { price: formatEur(perUnit, 4), margin: formatPct(margin) })}
-                                </Typography>
-                              )}
+                              <Typography variant="caption" color="text.secondary" component="div">
+                                {t.markup.margin}: {formatPct(marginFromMarkup(tierMarkup))}
+                              </Typography>
                             </>
-                          )}
+                          ) : null}
                         </Grid>
                       </Grid>
                     </Paper>

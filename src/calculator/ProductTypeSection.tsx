@@ -25,7 +25,7 @@ export function ProductTypeSection({ form, setForm, errorFor, fixedCosts }: Sect
     });
 
   return (
-    <Section step={2} title={t.productType.section} id={fieldId('productType')} required>
+    <Section step={3} title={t.productType.section} id={fieldId('productType')} required>
       <Box
         role="radiogroup"
         aria-label={t.productType.section}

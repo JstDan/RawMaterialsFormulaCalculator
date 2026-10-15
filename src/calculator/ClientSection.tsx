@@ -19,7 +19,7 @@ export function ClientSection({ form, setForm, errorFor, touch }: SectionProps) 
   const country = COUNTRIES.find((c) => c.name === r.country) ?? (r.country ? { name: r.country, group: 'other' } : null);
 
   return (
-    <Section step={1} title={t.client.section}>
+    <Section step={2} title={t.client.section}>
       <Stack spacing={3}>
         <div>
           <SubHeading>{t.client.receiver}</SubHeading>

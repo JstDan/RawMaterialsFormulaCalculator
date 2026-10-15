@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Alert, Box, CircularProgress, Snackbar, Stack, Typography } from '@mui/material';
 import { ClientSection } from '../calculator/ClientSection';
+import { ContactSection } from '../calculator/ContactSection';
 import { FormulaSection } from '../calculator/FormulaSection';
 import { MarkupSection } from '../calculator/MarkupSection';
 import { OfferLinesSection } from '../calculator/OfferLinesSection';
@@ -101,6 +102,7 @@ export function CalculatorPage() {
       <Typography variant="body2" sx={{ color: 'error.main' }}>
         {t.common.requiredLegend}
       </Typography>
+      <ContactSection {...sectionProps} email={settings.company_email} />
       <ClientSection {...sectionProps} />
       <ProductTypeSection {...sectionProps} fixedCosts={fixedCosts} />
       <FormulaSection {...sectionProps} materials={materials} result={result} />

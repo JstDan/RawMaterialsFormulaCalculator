@@ -95,12 +95,11 @@ export interface ExtraItem {
   price: string;
 }
 
-/** Alternative price for a specific order quantity (e.g. 1000 pcs for 4500 EUR in total). Numbers as typed. */
+/** Alternative price for a specific order quantity: its own markup on the unit cost. Numbers as typed. */
 export interface PriceTier {
   key: string;
   qty: string;
-  /** Total price for the whole quantity (pcs × price per unit). */
-  total: string;
+  markup: string;
 }
 
 /** One ingredient line of the formula. Price and note are a snapshot taken when the row was added. */
@@ -117,6 +116,8 @@ export interface FormulaRow {
 /** Everything the calculator form holds. Numeric inputs are kept as strings so "1,5" can be typed. */
 export interface OfferForm {
   id: string | null;
+  /** Nutrikal contact person printed on the offer (the sales email comes from Settings). */
+  contact: { name: string; phone: string };
   receiver: {
     fullName: string;
     address: string;

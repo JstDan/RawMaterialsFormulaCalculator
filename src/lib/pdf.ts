@@ -1,13 +1,12 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { fmt, t } from '../i18n';
-import type { CalcResult, OfferLine } from './calc';
+import { unitPriceFor, type CalcResult, type OfferLine } from './calc';
 import { formatDate, formatNumber, parseNum } from './numbers';
 import { CAPSULE_SIZES, isCapsule, type OfferForm, type ProductType, type Settings } from './types';
 
 // Client-facing offer, laid out after Nutrikal's offer template (Poppins, two brand marks, customer /
-// supplier blocks, line table with discount, payment bar, bank details, payment terms, amount per dose table,
-// terms, footer).
+// supplier blocks, amount per dose table, sales prices table, excl. VAT note, payment terms, terms, footer).
 // It must NEVER contain raw material prices, cost per dose, fixed costs, markup, margin, profit or the
 // raw material requirement list – only the data passed in OfferPdfModel.
 
@@ -29,6 +28,8 @@ export interface OfferPdfModel {
     addressLines: string[];
   };
   supplier: { name: string; identificationNo: string; vatNumber: string; address: string };
+  /** Nutrikal contact person (name, phone) and the sales email, printed under the logos. */
+  contact: { name: string; phone: string; email: string };
   lines: OfferLine[];
   subtotal: number;
   total: number;
@@ -36,11 +37,16 @@ export interface OfferPdfModel {
   /** Shown next to the bank details (offers never include VAT). */
   vatExemptionText: string | null;
   paymentTerms: string;
+  /** Price per unit for each quantity (the offer quantity plus price tiers), smallest first. Null without any quantity. */
+  salesPrices: { units: number; price: number }[] | null;
   /** Size of one dose, shown in the table title, e.g. "1 capsule" or "5.00 g". */
   dosePortion: string;
   /** Ingredients contained in one dose (no prices). Empty when the composition is switched off. */
   doseRows: { name: string; amount: string }[];
-  /** Packaging and the account manager's notes, printed under the amount per dose table. */
+  /** Product name and packaging line, printed above the amount per dose table. */
+  productName: string;
+  packaging: string;
+  /** The account manager's notes, printed under the amount per dose table. */
   noteLines: string[];
   /** Standard offer terms (Settings). */
   terms: string;
@@ -65,7 +71,6 @@ const NAVY: [number, number, number] = [27, 31, 59];
 const TEXT: [number, number, number] = [31, 35, 40];
 const LINE: [number, number, number] = [150, 155, 160];
 const HEAD_BG: [number, number, number] = [229, 231, 233];
-const BAR_BG: [number, number, number] = [222, 224, 226];
 const CYRILLIC = /[Ѐ-ӿ]/;
 
 type Weight = 'regular' | 'semibold' | 'bold';
@@ -102,19 +107,17 @@ export function toPdfModel(
     amount: result.productAmount,
   };
 
-  // Amount per dose table (no prices), then packaging and the account manager's notes.
-  const noteLines: string[] = [];
+  // Product name + packaging, amount per dose table (no prices), then the account manager's notes.
+  let packaging: string;
   const doseG = result.doseWeightMg / 1000;
   if (capsule) {
     const size = (Object.keys(CAPSULE_SIZES) as (keyof typeof CAPSULE_SIZES)[]).includes(form.capsuleSize)
       ? `, capsule size ${form.capsuleSize.replace('size', '')}`
       : '';
-    noteLines.push(`${t.productType[`packaging_${type}`]}s, ${perUnit} capsules each${size}.`);
+    packaging = `${t.productType[`packaging_${type}`]}s, ${perUnit} capsules each${size}.`;
   } else {
     const net = result.netWeightPerPouchG;
-    noteLines.push(
-      `Doypack pouches, ${perUnit} doses of ${formatNumber(doseG, 2)} g each${net ? ` (net ${formatNumber(net, 0)} g)` : ''}.`,
-    );
+    packaging = `Doypack pouches, ${perUnit} doses of ${formatNumber(doseG, 2)} g each${net ? ` (net ${formatNumber(net, 0)} g)` : ''}.`;
   }
   const caps = parseNum(form.capsulesPerDose) ?? 1;
   const dosePortion = capsule ? `${caps} ${caps === 1 ? 'capsule' : 'capsules'}` : `${formatNumber(doseG, 2)} g`;
@@ -123,7 +126,18 @@ export function toPdfModel(
         .filter((r) => (parseNum(r.amount) ?? 0) > 0)
         .map((r) => ({ name: r.name, amount: `${formatNumber(parseNum(r.amount) ?? 0, 4)} ${r.unit}` }))
     : [];
-  noteLines.push(...form.notes.split('\n').map((l) => l.trim()).filter(Boolean));
+  const noteLines = form.notes.split('\n').map((l) => l.trim()).filter(Boolean);
+
+  // Sales prices table: the offer quantity plus any price tiers; one column per quantity, no totals.
+  const tierPrices = (form.priceTiers ?? []).flatMap((tier) => {
+    const qty = parseNum(tier.qty);
+    const markup = parseNum(tier.markup);
+    return qty && qty > 0 && markup !== null ? [{ units: qty, price: unitPriceFor(result.unitCost, markup) }] : [];
+  });
+  const allPrices = [...(units > 0 && result.complete ? [{ units, price: result.unitPrice }] : []), ...tierPrices]
+    .filter((p, i, all) => all.findIndex((q) => q.units === p.units) === i)
+    .sort((a, b) => a.units - b.units);
+  const salesPrices = allPrices.length ? allPrices : null;
 
   const r = form.receiver;
   const inv = form.invoice;
@@ -149,14 +163,22 @@ export function toPdfModel(
       vatNumber: settings.company_vat,
       address: settings.company_address,
     },
+    contact: {
+      name: form.contact?.name.trim() ?? '',
+      phone: form.contact?.phone.trim() ?? '',
+      email: settings.company_email.trim(),
+    },
     lines: [productLine, ...result.extraLines],
     subtotal: result.totalPriceExclVat,
     total: result.totalPriceExclVat,
     bank: { iban: settings.bank_iban, name: settings.bank_name, bic: settings.bank_bic, address: settings.bank_address },
     vatExemptionText: settings.vat_exemption_text.trim() || null,
     paymentTerms: form.paymentTerms.trim(),
+    salesPrices,
     dosePortion,
     doseRows,
+    productName: name,
+    packaging,
     noteLines,
     terms: settings.terms_text.trim(),
     footerText: settings.footer_text,
@@ -243,9 +265,26 @@ export function createOfferPdf(m: OfferPdfModel, fonts: PdfFonts): jsPDF {
   labelValue(`${t.pdf.date}:`, formatDate(m.offerDate), COL2, 30, false);
   labelValue(`${t.pdf.dueAt}:`, m.dueDate ? formatDate(m.dueDate) : '', COL2, 36, false);
 
+  // Nutrikal contact person, phone and sales email under the logos (top left).
+  let top = 51;
+  const contactLines = [
+    [t.pdf.contactPerson, m.contact.name],
+    [t.pdf.phone, m.contact.phone],
+    [t.pdf.email, m.contact.email],
+  ].filter(([, value]) => value);
+  if (contactLines.length) {
+    let yh = 43;
+    for (const [label, value] of contactLines) {
+      const w = write(`${label}: `, L, yh, { size: 8.5 });
+      write(value, L + w, yh, { weight: 'bold', size: 8.5 });
+      yh += 4.4;
+    }
+    top = Math.max(top, yh + 6);
+  }
+
   // 2. Customer / supplier
   const STEP = 6.2;
-  let yc = 51;
+  let yc = top;
   write(t.pdf.customer, L, yc, { weight: 'semibold', size: 11 });
   yc += 7;
   if (m.customer.name) {
@@ -269,7 +308,7 @@ export function createOfferPdf(m: OfferPdfModel, fonts: PdfFonts): jsPDF {
     }
   }
 
-  let ys = 51;
+  let ys = top;
   write(t.pdf.supplier, COL2, ys, { weight: 'semibold', size: 11 });
   ys += 7;
   write(m.supplier.name, COL2, ys);
@@ -286,45 +325,12 @@ export function createOfferPdf(m: OfferPdfModel, fonts: PdfFonts): jsPDF {
     ys += STEP;
   }
 
-  // 3. Lines table
+  // 3. No price lines, totals or bank details on the offer – prices are in the sales prices table.
   const cellFont = (text: string, weight: Weight) => {
     const [font, fontStyle] = fontFor(weight, text);
     return { font, fontStyle: fontStyle as 'normal' | 'bold' };
   };
-  autoTable(doc, {
-    startY: Math.max(yc, ys) + 4,
-    margin: { left: L, right: pageW - R, bottom: 20 },
-    theme: 'plain',
-    head: [[t.pdf.description, t.pdf.qty, t.pdf.unit, t.pdf.price, t.pdf.discount, t.pdf.amount]],
-    body: m.lines.map((l) => [l.description, formatNumber(l.qty, 2).replace(/,/g, ''), l.unit, money(l.price), money(l.discountPct), money(l.amount)]),
-    styles: { font: 'Poppins', fontSize: 9, textColor: TEXT, cellPadding: { top: 2.4, bottom: 2.4, left: 1, right: 1 }, overflow: 'linebreak' },
-    headStyles: { font: 'Poppins', fontStyle: 'bold', fontSize: 8, fillColor: HEAD_BG, textColor: NAVY },
-    columnStyles: {
-      0: { cellWidth: 'auto' },
-      1: { cellWidth: 14, halign: 'right' },
-      2: { cellWidth: 12, halign: 'center' },
-      3: { cellWidth: 18, halign: 'right' },
-      4: { cellWidth: 26, halign: 'center' },
-      5: { cellWidth: 30, halign: 'right' },
-    },
-    didParseCell: (data) => {
-      const text = data.cell.text.join(' ');
-      if (data.section === 'head') {
-        data.cell.text = data.cell.text.map((s) => s.toUpperCase());
-        if ([1, 3, 5].includes(data.column.index)) data.cell.styles.halign = 'right';
-        if ([2, 4].includes(data.column.index)) data.cell.styles.halign = 'center';
-      } else if (CYRILLIC.test(text)) {
-        Object.assign(data.cell.styles, cellFont(text, 'regular'));
-      }
-    },
-    didDrawCell: (data) => {
-      if (data.section !== 'body') return;
-      doc.setDrawColor(...LINE);
-      doc.setLineWidth(0.25);
-      doc.line(data.cell.x, data.cell.y + data.cell.height, data.cell.x + data.cell.width, data.cell.y + data.cell.height);
-    },
-  });
-  let y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
+  let y = Math.max(yc, ys) + 6;
 
   const ensureSpace = (needed: number) => {
     if (y + needed > bottomLimit) {
@@ -333,39 +339,7 @@ export function createOfferPdf(m: OfferPdfModel, fonts: PdfFonts): jsPDF {
     }
   };
 
-  // 4. Totals + payment bar
-  ensureSpace(32);
-  y += 6;
-  write(`${t.pdf.subTotal}:`, 150, y, { size: 10.5, align: 'right' });
-  write(`${money(m.subtotal)} EUR`, R, y, { size: 10.5, align: 'right' });
-  y += 3;
-  doc.setFillColor(...BAR_BG);
-  doc.rect(L, y, R - L, 10.5, 'F');
-  write(`${t.pdf.payment}:`, L + 3.5, y + 6.8, { weight: 'semibold', size: 11 });
-  write(`${t.pdf.total}: ${money(m.total)} EUR`, R - 1, y + 6.8, { weight: 'bold', size: 11, align: 'right' });
-  y += 10.5 + 10;
-
-  // 5. Bank details + VAT exemption
-  ensureSpace(28);
-  write(`IBAN: ${m.bank.iban}`, L, y, { weight: 'bold', size: 8.5 });
-  if (m.vatExemptionText) write(m.vatExemptionText, R, y, { weight: 'bold', size: 8.5, align: 'right' });
-  y += 5.5;
-  const bankLines = [
-    m.bank.name && `${t.pdf.bank}: ${m.bank.name}`,
-    m.bank.bic && `BIC: ${m.bank.bic}`,
-    m.bank.address && `${t.pdf.bankAddress}: ${m.bank.address}`,
-  ].filter(Boolean) as string[];
-  doc.setFontSize(9);
-  for (const line of bankLines) {
-    doc.setFont(...fontFor('regular', line));
-    for (const part of doc.splitTextToSize(line, 85) as string[]) {
-      write(part, L, y);
-      y += 5.5;
-    }
-  }
-  y += 7;
-
-  // 6. Payment terms, amount per dose, standard terms
+  // 4. Amount per dose, sales prices, excl. VAT note, payment terms, standard terms
   const textLines = (lines: string[]) => {
     doc.setFontSize(9);
     for (const line of lines) {
@@ -385,7 +359,12 @@ export function createOfferPdf(m: OfferPdfModel, fonts: PdfFonts): jsPDF {
     textLines(lines);
     y += 4;
   };
-  block(t.pdf.paymentTerms, m.paymentTerms ? [m.paymentTerms] : []);
+  // Product name with the packaging line under it.
+  ensureSpace(16);
+  write(m.productName, L, y, { weight: 'bold', size: 12, color: NAVY });
+  y += 6;
+  textLines([m.packaging]);
+  y += 4;
 
   if (m.doseRows.length) {
     ensureSpace(24);
@@ -418,7 +397,7 @@ export function createOfferPdf(m: OfferPdfModel, fonts: PdfFonts): jsPDF {
     });
     y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
   }
-  // Packaging and notes: under the table, or with their own heading when the table is switched off.
+  // Notes: under the table, or with their own heading when the table is switched off.
   if (m.doseRows.length) {
     if (m.noteLines.length) {
       textLines(m.noteLines);
@@ -427,11 +406,37 @@ export function createOfferPdf(m: OfferPdfModel, fonts: PdfFonts): jsPDF {
   } else {
     block(t.pdf.note, m.noteLines);
   }
-  block(t.pdf.terms, m.terms ? [m.terms] : []);
+  // Sales prices, then the excl. VAT line, payment terms and standard terms at the end.
+  if (m.salesPrices) {
+    ensureSpace(24);
+    write(t.pdf.salesPrices, L, y, { weight: 'bold', size: 8 });
+    y += 2.5;
+    autoTable(doc, {
+      startY: y,
+      margin: { left: L, right: pageW - R, top: 15, bottom: 20 },
+      theme: 'plain',
+      body: [
+        [t.pdf.units, ...m.salesPrices.map((p) => formatNumber(p.units, 0))],
+        [t.pdf.pricePerUnit, ...m.salesPrices.map((p) => `${money(p.price)} EUR`)],
+      ],
+      styles: { font: 'Poppins', fontSize: 9, textColor: TEXT, cellPadding: { top: 2, bottom: 2, left: 1.5, right: 1.5 }, halign: 'right' },
+      columnStyles: { 0: { halign: 'left', fontStyle: 'bold', fillColor: HEAD_BG, textColor: NAVY, cellWidth: 32 } },
+      didDrawCell: (data) => {
+        doc.setDrawColor(...LINE);
+        doc.setLineWidth(0.25);
+        doc.line(data.cell.x, data.cell.y + data.cell.height, data.cell.x + data.cell.width, data.cell.y + data.cell.height);
+      },
+    });
+    y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
+  }
+
   ensureSpace(8);
   write(t.pdf.pricesExclVat, L, y, { weight: 'bold', size: 9 });
+  y += 9;
+  block(t.pdf.paymentTerms, m.paymentTerms ? [m.paymentTerms] : []);
+  block(t.pdf.terms, m.terms ? [m.terms] : []);
 
-  // 7. Footer on every page
+  // 5. Footer on every page
   const pages = doc.getNumberOfPages();
   for (let i = 1; i <= pages; i++) {
     doc.setPage(i);

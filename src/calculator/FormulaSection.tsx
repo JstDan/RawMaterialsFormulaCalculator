@@ -118,7 +118,7 @@ export function FormulaSection({ form, setForm, errorFor, touch, materials, resu
     capsule && result.fillWeightPerCapsuleMg !== null && maxFill !== null && result.fillWeightPerCapsuleMg > maxFill;
 
   return (
-    <Section step={3} title={t.formula.section} id={fieldId('rows')} required>
+    <Section step={4} title={t.formula.section} id={fieldId('rows')} required>
       <Stack spacing={2}>
         <div>
           <Autocomplete<RawMaterial>

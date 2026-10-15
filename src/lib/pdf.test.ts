@@ -22,6 +22,7 @@ const images = { customLogo: null, brandLogos };
 
 const sampleForm: OfferForm = {
   id: null,
+  contact: { name: 'Hristiyan Hristov', phone: '+359 877 334 600' },
   receiver: {
     fullName: 'Kastriot Uruqi',
     address: '',
@@ -90,11 +91,14 @@ describe('offer PDF (Nutrikal template)', () => {
       addressLines: ['Косово'],
     });
     expect(model.supplier.name).toBe('Nutrikal Ltd');
+    expect(model.contact).toEqual({ name: 'Hristiyan Hristov', phone: '+359 877 334 600', email: 'sales@nutrikal.com' });
     expect(model.paymentTerms).toBe('70% Down Payment and 30% Balance Payment when goods are ready to be shipped');
     expect(model.terms).toBe(DEFAULT_SETTINGS.terms_text);
     expect(model.terms.startsWith('The prices are EUR/EXW excl. VAT')).toBe(true);
     expect(model.noteLines.join(' ')).not.toContain('EUR/EXW');
-    expect(model.noteLines).toEqual(['Plastic bottles, 30 capsules each, capsule size 00.']);
+    expect(model.productName).toBe('Custom formula');
+    expect(model.packaging).toBe('Plastic bottles, 30 capsules each, capsule size 00.');
+    expect(model.noteLines).toEqual([]);
     expect(model.dosePortion).toBe('1 capsule');
     expect(model.doseRows).toEqual([
       { name: 'Citicoline', amount: '250 mg' },
@@ -103,7 +107,17 @@ describe('offer PDF (Nutrikal template)', () => {
     ]);
     const noComposition = toPdfModel({ ...sampleForm, includeComposition: false }, result, DEFAULT_SETTINGS, images);
     expect(noComposition.doseRows).toEqual([]);
-    expect(noComposition.noteLines).toHaveLength(1);
+    expect(model.salesPrices).toEqual([{ units: 1000, price: result.unitPrice }]);
+    const tiers = toPdfModel(
+      { ...sampleForm, numberOfUnits: '1000', priceTiers: [{ key: 't1', qty: '500', markup: '40' }, { key: 't2', qty: '', markup: '10' }] },
+      result,
+      DEFAULT_SETTINGS,
+      images,
+    );
+    expect(tiers.salesPrices?.map((p) => p.units)).toEqual([500, 1000]);
+    expect(tiers.salesPrices?.[1].price).toBe(result.unitPrice);
+    expect(JSON.stringify(tiers.salesPrices)).not.toMatch(/total/i);
+    expect(noComposition.packaging).toBe(model.packaging);
     // Older offers saved with "Add VAT" switched on are now also excl. VAT.
     const withVat = { ...sampleForm, addVat: true };
     const vatModel = toPdfModel(withVat, calculate(calcInputFromForm(withVat, DEFAULT_SETTINGS.fixed_costs)), DEFAULT_SETTINGS, images);

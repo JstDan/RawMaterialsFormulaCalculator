@@ -23,7 +23,7 @@ export function QuantitySection({ form, setForm, errorFor, touch, result }: Sect
   const notWhole = capsule && result.dosesPerUnit !== null && !Number.isInteger(result.dosesPerUnit);
 
   return (
-    <Section step={4} title={t.quantity.section}>
+    <Section step={5} title={t.quantity.section}>
       <Grid container spacing={2} sx={{ alignItems: 'flex-start' }}>
         <Grid size={{ xs: 12, sm: 6 }}>
           <NumberField

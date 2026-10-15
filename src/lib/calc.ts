@@ -184,6 +184,11 @@ export function calculate(input: CalcInput): CalcResult {
 }
 
 /** Margin % that results from a markup % applied on cost. */
+/** Price per unit from a unit cost and a markup, rounded like the offer (2 decimals, half up). */
+export function unitPriceFor(unitCost: number, markupPct: number): number {
+  return new Decimal(unitCost).mul(new Decimal(markupPct).div(100).add(1)).toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toNumber();
+}
+
 export function marginFromMarkup(markupPct: number): number {
   if (markupPct <= -100) return 0;
   return new Decimal(markupPct).div(new Decimal(markupPct).add(100)).mul(100).toNumber();
