@@ -52,10 +52,10 @@ export interface OfferPdfModel {
   terms: string;
   footerText: string;
   websites: string[];
-  /** Uploaded logo (Settings) – replaces the brand marks in the header. */
+  /** Uploaded logo (Settings) – replaces the built-in logo in the header. */
   customLogo: PdfImage | null;
-  /** Built-in Nutrikal / MadeByNatureLabs marks. */
-  brandLogos: [PdfImage, PdfImage] | null;
+  /** Built-in Nutrikal logo (wide wordmark). */
+  brandLogo: PdfImage | null;
 }
 
 export interface PdfFonts {
@@ -87,7 +87,7 @@ export function toPdfModel(
   form: OfferForm,
   result: CalcResult,
   settings: Settings,
-  images: { customLogo: PdfImage | null; brandLogos: [PdfImage, PdfImage] | null },
+  images: { customLogo: PdfImage | null; brandLogo: PdfImage | null },
 ): OfferPdfModel {
   if (!form.productType) throw new Error('Product type is required');
   const type = form.productType;
@@ -187,7 +187,7 @@ export function toPdfModel(
       .map((s) => s.trim())
       .filter(Boolean),
     customLogo: images.customLogo,
-    brandLogos: images.brandLogos,
+    brandLogo: images.brandLogo,
   };
 }
 
@@ -211,7 +211,7 @@ export function createOfferPdf(m: OfferPdfModel, fonts: PdfFonts): jsPDF {
   register('Poppins-Bold.ttf', fonts.poppinsBold, 'Poppins', 'bold');
   register('Poppins-SemiBold.ttf', fonts.poppinsSemiBold, 'PoppinsSemiBold', 'normal');
   // Poppins has no Cyrillic glyphs: embed the Roboto fallback only when the offer contains Cyrillic text.
-  const hasCyrillic = CYRILLIC.test(JSON.stringify({ ...m, customLogo: null, brandLogos: null }));
+  const hasCyrillic = CYRILLIC.test(JSON.stringify({ ...m, customLogo: null, brandLogo: null }));
   if (hasCyrillic) {
     register('Roboto-Regular.ttf', fonts.robotoRegular, 'Roboto', 'normal');
     register('Roboto-Bold.ttf', fonts.robotoBold, 'Roboto', 'bold');
@@ -248,15 +248,13 @@ export function createOfferPdf(m: OfferPdfModel, fonts: PdfFonts): jsPDF {
   const COL2 = 103;
   const bottomLimit = pageH - 18;
 
-  // 1. Header: brand marks (or uploaded logo) + OFFER meta
+  // 1. Header: Nutrikal logo (or uploaded logo) + OFFER meta
   if (m.customLogo) {
     const ratio = Math.min(60 / m.customLogo.width, 24 / m.customLogo.height);
     doc.addImage(m.customLogo.dataUrl, imageFormat(m.customLogo), 12, 12, m.customLogo.width * ratio, m.customLogo.height * ratio);
-  } else if (m.brandLogos) {
-    // The marks have built-in padding; 31 mm boxes give ~24 mm visible logos like the template.
-    m.brandLogos.forEach((img, i) =>
-      doc.addImage(img.dataUrl, imageFormat(img), L + i * 31.5, 8.5, 31, 31 * (img.height / img.width), `brand${i}`),
-    );
+  } else if (m.brandLogo) {
+    const w = 62;
+    doc.addImage(m.brandLogo.dataUrl, imageFormat(m.brandLogo), L, 12, w, w * (m.brandLogo.height / m.brandLogo.width), 'brand');
   } else {
     write(m.supplier.name.toUpperCase(), 12, 24, { weight: 'bold', size: 20, color: NAVY });
   }
@@ -273,7 +271,7 @@ export function createOfferPdf(m: OfferPdfModel, fonts: PdfFonts): jsPDF {
     [t.pdf.email, m.contact.email],
   ].filter(([, value]) => value);
   if (contactLines.length) {
-    let yh = 43;
+    let yh = 28;
     for (const [label, value] of contactLines) {
       const w = write(`${label}: `, L, yh, { size: 8.5 });
       write(value, L + w, yh, { weight: 'bold', size: 8.5 });
@@ -444,18 +442,10 @@ export function createOfferPdf(m: OfferPdfModel, fonts: PdfFonts): jsPDF {
     doc.setLineWidth(0.4);
     doc.line(5, pageH - 10, pageW - 5, pageH - 10);
     if (m.footerText.trim()) write(m.footerText, 5, pageH - 4.5, { size: 8.5 });
-    // Websites from the right, each with its brand mark when the built-in marks are used.
+    // Websites from the right.
     let x = pageW - 5;
-    [...m.websites].reverse().forEach((site, idx) => {
-      const w = write(site, x, pageH - 4.5, { size: 8.5, align: 'right' });
-      x -= w;
-      const logo = !m.customLogo && m.brandLogos ? m.brandLogos[m.websites.length - 1 - idx] : undefined;
-      if (logo) {
-        x -= 6.8;
-        const alias = `brand${m.websites.length - 1 - idx}`;
-        doc.addImage(logo.dataUrl, imageFormat(logo), x, pageH - 9.1, 6, 6 * (logo.height / logo.width), alias);
-      }
-      x -= 4.5;
+    [...m.websites].reverse().forEach((site) => {
+      x -= write(site, x, pageH - 4.5, { size: 8.5, align: 'right' }) + 4.5;
     });
     if (pages > 1) write(fmt(t.pdf.page, { n: i, m: pages }), pageW / 2, pageH - 4.5, { size: 8, align: 'left' });
   }
@@ -467,7 +457,7 @@ export function createOfferPdf(m: OfferPdfModel, fonts: PdfFonts): jsPDF {
 // Browser helpers: lazy font / image loading and download
 // ---------------------------------------------------------------------------
 
-let assetCache: Promise<{ fonts: PdfFonts; brandLogos: [PdfImage, PdfImage] }> | null = null;
+let assetCache: Promise<{ fonts: PdfFonts; brandLogo: PdfImage | null }> | null = null;
 
 function arrayBufferToBase64(buf: ArrayBuffer): string {
   const bytes = new Uint8Array(buf);
@@ -498,16 +488,15 @@ function loadAssets() {
       import('../assets/fonts/Roboto-Regular.ttf?url'),
       import('../assets/fonts/Roboto-Bold.ttf?url'),
       import('../assets/brand/logo-nutrikal.png?url'),
-      import('../assets/brand/logo-madebynature.png?url'),
     ]);
     const base64 = await Promise.all(
       urls.map(async ({ default: url }) => arrayBufferToBase64(await (await fetch(url)).arrayBuffer())),
     );
-    const [poppinsRegular, poppinsSemiBold, poppinsBold, robotoRegular, robotoBold, nk, mbn] = base64;
-    const logos = await Promise.all([nk, mbn].map((b) => loadImage(`data:image/png;base64,${b}`)));
+    const [poppinsRegular, poppinsSemiBold, poppinsBold, robotoRegular, robotoBold, nk] = base64;
+    const brandLogo = await loadImage(`data:image/png;base64,${nk}`);
     return {
       fonts: { poppinsRegular, poppinsSemiBold, poppinsBold, robotoRegular, robotoBold },
-      brandLogos: logos as [PdfImage, PdfImage],
+      brandLogo,
     };
   })().catch((e) => {
     assetCache = null;
@@ -517,7 +506,7 @@ function loadAssets() {
 }
 
 export async function downloadOfferPdf(form: OfferForm, result: CalcResult, settings: Settings): Promise<void> {
-  const [{ fonts, brandLogos }, customLogo] = await Promise.all([loadAssets(), loadImage(settings.logo_data_url)]);
-  const doc = createOfferPdf(toPdfModel(form, result, settings, { customLogo, brandLogos }), fonts);
+  const [{ fonts, brandLogo }, customLogo] = await Promise.all([loadAssets(), loadImage(settings.logo_data_url)]);
+  const doc = createOfferPdf(toPdfModel(form, result, settings, { customLogo, brandLogo }), fonts);
   doc.save(offerFileName(form));
 }

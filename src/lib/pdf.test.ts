@@ -14,11 +14,8 @@ const fonts = {
   robotoRegular: b64('fonts', 'Roboto-Regular.ttf'),
   robotoBold: b64('fonts', 'Roboto-Bold.ttf'),
 };
-const brandLogos: [PdfImage, PdfImage] = [
-  { dataUrl: `data:image/png;base64,${b64('brand', 'logo-nutrikal.png')}`, width: 270, height: 270 },
-  { dataUrl: `data:image/png;base64,${b64('brand', 'logo-madebynature.png')}`, width: 276, height: 270 },
-];
-const images = { customLogo: null, brandLogos };
+const brandLogo: PdfImage = { dataUrl: `data:image/png;base64,${b64('brand', 'logo-nutrikal.png')}`, width: 190, height: 21 };
+const images = { customLogo: null, brandLogo };
 
 const sampleForm: OfferForm = {
   id: null,
@@ -66,7 +63,7 @@ describe('offer PDF (Nutrikal template)', () => {
   const model = toPdfModel(sampleForm, result, DEFAULT_SETTINGS, images);
 
   it('model contains only client-safe data', () => {
-    const json = JSON.stringify({ ...model, brandLogos: null });
+    const json = JSON.stringify({ ...model, brandLogo: null });
     expect(json).not.toContain('pricePerKg');
     expect(json).not.toContain('122'); // raw material price per kg
     expect(json).not.toMatch(/markup|margin|profit|fixed|requirement|costPerDose|unitCost/i);

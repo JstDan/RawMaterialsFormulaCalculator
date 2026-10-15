@@ -11,7 +11,6 @@ import { parseNum } from '../lib/numbers';
 import { PRODUCT_TYPES, type ProductType, type Settings } from '../lib/types';
 import { t } from '../i18n';
 import nutrikalMark from '../assets/brand/logo-nutrikal.png';
-import madeByNatureMark from '../assets/brand/logo-madebynature.png';
 
 const MAX_LOGO_BYTES = 500 * 1024;
 
@@ -275,10 +274,7 @@ export function SettingsPanel({ onSaved }: { onSaved: (message: string) => void 
               {draft.logo_data_url ? (
                 <Box component="img" src={draft.logo_data_url} alt={t.settings.logo} sx={{ maxWidth: '100%', maxHeight: '100%' }} />
               ) : (
-                <Stack direction="row" spacing={1.5}>
-                  <Box component="img" src={nutrikalMark} alt="Nutrikal" sx={{ height: 52 }} />
-                  <Box component="img" src={madeByNatureMark} alt="MadeByNatureLabs" sx={{ height: 52 }} />
-                </Stack>
+                <Box component="img" src={nutrikalMark} alt="Nutrikal" sx={{ maxWidth: '100%', height: 28 }} />
               )}
             </Box>
             <Button component="label" variant="outlined" startIcon={<UploadIcon />}>
