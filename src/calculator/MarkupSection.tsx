@@ -1,4 +1,4 @@
-import { Box, Button, FormControlLabel, Grid, IconButton, Paper, Slider, Stack, Switch, Tooltip, Typography } from '@mui/material';
+import { Box, Button, Grid, IconButton, Paper, Slider, Stack, Tooltip, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import { NumberField } from '../components/NumberField';
@@ -11,7 +11,7 @@ import { fmt, t } from '../i18n';
 import { unitsLabel } from './QuantitySections';
 import type { SectionProps } from './sectionProps';
 
-/** Step 5: number of units, markup, discount, VAT and optional price tiers for other quantities. */
+/** Step 5: number of units, markup, discount and optional price tiers for other quantities. Prices are excl. VAT. */
 export function MarkupSection({ form, setForm, errorFor, touch, result }: SectionProps & { result: CalcResult }) {
   const markup = parseNum(form.markup) ?? 0;
   const discount = parseNum(form.discount);
@@ -91,27 +91,6 @@ export function MarkupSection({ form, setForm, errorFor, touch, result }: Sectio
               suffix="%"
             />
           </Grid>
-        </Grid>
-
-        <Grid container spacing={2} sx={{ alignItems: 'center' }}>
-          <Grid size={{ xs: 12, sm: 4 }}>
-            <FormControlLabel
-              control={
-                <Switch checked={form.addVat} onChange={(e) => setForm((f) => ({ ...f, addVat: e.target.checked }))} />
-              }
-              label={t.markup.addVat}
-            />
-          </Grid>
-          {form.addVat && (
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <NumberField
-                label={t.markup.vatRate}
-                value={form.vatRate}
-                onChange={(v) => setForm((f) => ({ ...f, vatRate: v }))}
-                suffix="%"
-              />
-            </Grid>
-          )}
         </Grid>
 
         <Box>

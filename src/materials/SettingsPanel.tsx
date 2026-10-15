@@ -51,7 +51,6 @@ export function SettingsPanel({ onSaved }: { onSaved: (message: string) => void 
     capsules_plastic: parseNum(draft.fixed_costs.capsules_plastic),
     powder: parseNum(draft.fixed_costs.powder),
     markup: parseNum(draft.default_markup),
-    vat: parseNum(draft.default_vat_rate),
   };
   const sheetIdOk = !!extractSheetId(draft.google_sheet_url);
   const presetsOk = draft.service_presets.every((p) => p.description.trim() && (parseNum(p.price) ?? -1) >= 0);
@@ -83,7 +82,7 @@ export function SettingsPanel({ onSaved }: { onSaved: (message: string) => void 
           powder: numbers.powder!,
         },
         default_markup: numbers.markup!,
-        default_vat_rate: numbers.vat!,
+        default_vat_rate: parseNum(draft.default_vat_rate) ?? 0,
         service_presets: draft.service_presets.map((p) => ({
           description: p.description.trim(),
           unit: p.unit.trim(),
@@ -127,15 +126,6 @@ export function SettingsPanel({ onSaved }: { onSaved: (message: string) => void 
                 value={draft.default_markup}
                 onChange={(v) => set({ default_markup: v })}
                 error={numbers.markup === null}
-                suffix="%"
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <NumberField
-                label={t.settings.defaultVat}
-                value={draft.default_vat_rate}
-                onChange={(v) => set({ default_vat_rate: v })}
-                error={numbers.vat === null}
                 suffix="%"
               />
             </Grid>

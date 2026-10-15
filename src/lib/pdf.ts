@@ -31,10 +31,9 @@ export interface OfferPdfModel {
   supplier: { name: string; identificationNo: string; vatNumber: string; address: string };
   lines: OfferLine[];
   subtotal: number;
-  vatAmount: number;
   total: number;
   bank: { iban: string; name: string; bic: string; address: string };
-  /** Shown next to the bank details when no VAT is charged. */
+  /** Shown next to the bank details (offers never include VAT). */
   vatExemptionText: string | null;
   paymentTerms: string;
   /** Size of one dose, shown in the table title, e.g. "1 capsule" or "5.00 g". */
@@ -152,10 +151,9 @@ export function toPdfModel(
     },
     lines: [productLine, ...result.extraLines],
     subtotal: result.totalPriceExclVat,
-    vatAmount: result.vatAmount,
-    total: result.totalInclVat,
+    total: result.totalPriceExclVat,
     bank: { iban: settings.bank_iban, name: settings.bank_name, bic: settings.bank_bic, address: settings.bank_address },
-    vatExemptionText: form.addVat ? null : settings.vat_exemption_text.trim() || null,
+    vatExemptionText: settings.vat_exemption_text.trim() || null,
     paymentTerms: form.paymentTerms.trim(),
     dosePortion,
     doseRows,
@@ -340,9 +338,6 @@ export function createOfferPdf(m: OfferPdfModel, fonts: PdfFonts): jsPDF {
   y += 6;
   write(`${t.pdf.subTotal}:`, 150, y, { size: 10.5, align: 'right' });
   write(`${money(m.subtotal)} EUR`, R, y, { size: 10.5, align: 'right' });
-  y += 6.5;
-  write(`${t.pdf.taxVat}:`, 150, y, { size: 10.5, align: 'right' });
-  write(`${money(m.vatAmount)} EUR`, R, y, { size: 10.5, align: 'right' });
   y += 3;
   doc.setFillColor(...BAR_BG);
   doc.rect(L, y, R - L, 10.5, 'F');
@@ -433,6 +428,8 @@ export function createOfferPdf(m: OfferPdfModel, fonts: PdfFonts): jsPDF {
     block(t.pdf.note, m.noteLines);
   }
   block(t.pdf.terms, m.terms ? [m.terms] : []);
+  ensureSpace(8);
+  write(t.pdf.pricesExclVat, L, y, { weight: 'bold', size: 9 });
 
   // 7. Footer on every page
   const pages = doc.getNumberOfPages();

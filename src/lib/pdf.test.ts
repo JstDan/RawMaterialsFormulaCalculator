@@ -54,7 +54,7 @@ const sampleForm: OfferForm = {
     { key: 'x3', description: 'Label design service', qty: '1', unit: 'pcs.', price: '200' },
   ],
   priceTiers: [],
-  paymentTerms: '100% advance payment',
+  paymentTerms: '70% Down Payment and 30% Balance Payment when goods are ready to be shipped',
   includeComposition: true,
   notes: '',
   fixedCosts: null,
@@ -80,7 +80,7 @@ describe('offer PDF (Nutrikal template)', () => {
     ]);
     expect(model.lines.slice(1).map((l) => l.amount)).toEqual([300, 220, 200]);
     expect(model.subtotal).toBe(result.totalPriceExclVat);
-    expect(model.vatAmount).toBe(0);
+    expect(model.total).toBe(model.subtotal);
     expect(model.vatExemptionText).toBe('VAT Exemption');
     expect(model.customer).toEqual({
       name: 'Kastriot Uruqi',
@@ -90,7 +90,7 @@ describe('offer PDF (Nutrikal template)', () => {
       addressLines: ['Косово'],
     });
     expect(model.supplier.name).toBe('Nutrikal Ltd');
-    expect(model.paymentTerms).toBe('100% advance payment');
+    expect(model.paymentTerms).toBe('70% Down Payment and 30% Balance Payment when goods are ready to be shipped');
     expect(model.terms).toBe(DEFAULT_SETTINGS.terms_text);
     expect(model.terms.startsWith('The prices are EUR/EXW excl. VAT')).toBe(true);
     expect(model.noteLines.join(' ')).not.toContain('EUR/EXW');
@@ -104,10 +104,10 @@ describe('offer PDF (Nutrikal template)', () => {
     const noComposition = toPdfModel({ ...sampleForm, includeComposition: false }, result, DEFAULT_SETTINGS, images);
     expect(noComposition.doseRows).toEqual([]);
     expect(noComposition.noteLines).toHaveLength(1);
+    // Older offers saved with "Add VAT" switched on are now also excl. VAT.
     const withVat = { ...sampleForm, addVat: true };
     const vatModel = toPdfModel(withVat, calculate(calcInputFromForm(withVat, DEFAULT_SETTINGS.fixed_costs)), DEFAULT_SETTINGS, images);
-    expect(vatModel.vatExemptionText).toBeNull();
-    expect(vatModel.vatAmount).toBeGreaterThan(0);
+    expect(vatModel.total).toBe(vatModel.subtotal);
   });
 
   it('renders an A4 PDF with Poppins and a Cyrillic fallback font', () => {

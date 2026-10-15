@@ -123,13 +123,7 @@ export function ResultsSection({ form, result, valid, busy, onSave, onDownloadPd
             <Grid size={{ xs: 12, sm: 6 }}>
               <InfoLine label={t.results.unitPrice} value={formatEur(r.unitPrice)} />
               {discount > 0 && <InfoLine label={t.results.discount} value={formatPct(discount, 2)} />}
-              <InfoLine label={t.results.subTotal} value={formatEur(r.totalPriceExclVat)} strong={!form.addVat} />
-              {form.addVat && (
-                <>
-                  <InfoLine label={`${t.results.vat} (${formatPct(parseNum(form.vatRate) ?? 0, 0)})`} value={formatEur(r.vatAmount)} />
-                  <InfoLine label={t.results.totalInclVat} value={formatEur(r.totalInclVat)} strong />
-                </>
-              )}
+              <InfoLine label={t.results.subTotal} value={formatEur(r.totalPriceExclVat)} strong />
             </Grid>
           </Grid>
 

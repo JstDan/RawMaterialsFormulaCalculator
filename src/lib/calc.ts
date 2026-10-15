@@ -197,8 +197,9 @@ export function calcInputFromForm(form: OfferForm, fixedCosts: FixedCosts): Calc
     quantityPerUnit: parsePositiveInt(form.quantityPerUnit),
     numberOfUnits: parsePositiveInt(form.numberOfUnits),
     markupPct: parseNum(form.markup),
-    addVat: form.addVat,
-    vatRatePct: parseNum(form.vatRate),
+    // VAT is no longer added: offers are always excl. VAT (older saved offers included).
+    addVat: false,
+    vatRatePct: null,
     discountPct: parseNum(form.discount ?? ''),
     extraItems: (form.extraItems ?? []).map((x) => ({
       description: x.description,

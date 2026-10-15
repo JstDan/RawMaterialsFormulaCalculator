@@ -7,6 +7,12 @@ import type { OfferForm, Settings } from '../lib/types';
 
 const DRAFT_KEY = 'nk.draft';
 
+/** Earlier default payment terms – unsaved drafts that still carry one get the current default. */
+const OLD_DEFAULT_TERMS = [
+  '100% advance payment',
+  '50% Down Payment and 50% Balance Payment when goods are ready to be shipped',
+];
+
 export function createEmptyForm(settings: Settings, offerNo: string): OfferForm {
   return {
     id: null,
@@ -45,7 +51,10 @@ export function normalizeForm(f: OfferForm, settings: Settings): OfferForm {
     extraItems: f.extraItems ?? [],
     priceTiers: f.priceTiers ?? [],
     discount: f.discount ?? '0',
-    paymentTerms: f.paymentTerms ?? settings.default_payment_terms,
+    paymentTerms:
+      f.paymentTerms == null || (!f.id && OLD_DEFAULT_TERMS.includes(f.paymentTerms))
+        ? settings.default_payment_terms
+        : f.paymentTerms,
   };
 }
 
