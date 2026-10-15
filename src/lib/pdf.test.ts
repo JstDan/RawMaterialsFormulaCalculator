@@ -14,7 +14,7 @@ const fonts = {
   robotoRegular: b64('fonts', 'Roboto-Regular.ttf'),
   robotoBold: b64('fonts', 'Roboto-Bold.ttf'),
 };
-const brandLogo: PdfImage = { dataUrl: `data:image/png;base64,${b64('brand', 'logo-nutrikal.png')}`, width: 190, height: 21 };
+const brandLogo: PdfImage = { dataUrl: `data:image/png;base64,${b64('brand', 'logo-nutrikal.png')}`, width: 2400, height: 257 };
 const images = { customLogo: null, brandLogo };
 
 const sampleForm: OfferForm = {
